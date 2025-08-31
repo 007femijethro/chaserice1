@@ -1,0 +1,46 @@
+<!-- templates/raffle.html -->
+{% extends "base.html" %}
+
+{% block title %}Raffle - Chase Rice Fanpage{% endblock %}
+
+{% block content %}
+<div class="section">
+    <div class="container">
+        <h2 class="section-title">Meet & Greet Raffle</h2>
+
+        <div class="card">
+            <div class="card-content">
+                <h3 class="card-title">Enter for a Chance to Meet Chase!</h3>
+                <p>Fill out the form below to enter the raffle. One lucky winner will be chosen at random for a virtual Meet & Greet session! Good luck!</p>
+
+                <form method="POST" action="{{ url_for('raffle') }}">
+                    <div class="form-group">
+                        <label for="name">Full Name *</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address *</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="favorite_song">Favorite Chase Rice Song</label>
+                        <input type="text" class="form-control" id="favorite_song" name="favorite_song">
+                    </div>
+
+                    <button type="submit" class="btn">Enter the Raffle</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-content">
+                <h3 class="card-title">Previous Winners</h3>
+                <p>Check out our recent winners who had the chance to meet Chase Rice virtually!</p>
+                <a href="{{ url_for('winners') }}" class="btn">View Winners</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

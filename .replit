@@ -1,0 +1,8 @@
+modules = ["python-3.11", "web"]
+run = "run = \"python app.py\" language = \"python3\""
+
+[nix]
+channel = "stable-25_05"
+
+[deployment]
+run = ["sh", "-c", "run = \"python https://replit.com/@007femijethro/chaserice1#main.py\" language = \"python3\""]

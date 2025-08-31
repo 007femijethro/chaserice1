@@ -1,0 +1,37 @@
+<!-- templates/pick_winner.html -->
+{% extends "base.html" %}
+
+{% block title %}Pick Winner - Chase Rice Fanpage{% endblock %}
+
+{% block content %}
+<div class="section">
+    <div class="container">
+        <h2 class="section-title">And the Winner Is...</h2>
+
+        {% if winner %}
+            <div class="card" style="text-align: center;">
+                <div class="card-content">
+                    <h3 class="card-title">{{ winner.name }}</h3>
+                    <p style="font-size: 1.2rem; margin-bottom: 1rem;">Email: {{ winner.email }}</p>
+                    <p style="font-size: 1.2rem; margin-bottom: 2rem;">Favorite Song: {{ winner.favorite_song or "Not specified" }}</p>
+
+                    <p style="font-size: 1.5rem; color: #1a2a6c; font-weight: bold;">
+                        Congratulations! This fan has won a virtual Meet & Greet with Chase Rice!
+                    </p>
+                </div>
+            </div>
+        {% else %}
+            <div class="card">
+                <div class="card-content">
+                    <h3 class="card-title">No Winner Selected</h3>
+                    <p>There was an error selecting a winner. Please try again.</p>
+                </div>
+            </div>
+        {% endif %}
+
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="{{ url_for('admin_dashboard') }}" class="btn">Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+<!-- templates/index.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero">
+    <div class="hero-content">
+        <h1>Chase Rice</h1>
+        <p>Country Music Artist & Songwriter</p>
+        <a href="{{ url_for('raffle') }}" class="btn">Enter Meet & Greet Raffle</a>
+    </div>
+</div>
+
+<div class="section">
+    <div class="container">
+        <h2 class="section-title">Latest News</h2>
+        <div class="grid">
+            <div class="card">
+                <div class="card-content">
+                    <h3 class="card-title">New Album Coming Soon</h3>
+                    <p>Chase is back in the studio working on his next album. Stay tuned for updates and release dates!</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-content">
+                    <h3 class="card-title">Tour Dates Announced</h3>
+                    <p>The "Drinkin' Beer. Talkin' God. Amen." tour kicks off next month. Check your local listings for tickets.</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-content">
+                    <h3 class="card-title">Raffle Winners</h3>
+                    <p>Congratulations to our latest Meet & Greet winners! Check out the winners page to see who got to meet Chase.</p>
+                    <a href="{{ url_for('winners') }}" class="btn">View Winners</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="section" style="background: #f8f9fa;">
+    <div class="container">
+        <h2 class="section-title">Featured Music</h2>
+        <div class="grid">
+            <div class="card">
+                <div class="card-content">
+                    <h3 class="card-title">Eyes On You</h3>
+                    <p>Triple platinum single that became Chase's biggest hit to date, reaching No. 1 on Country radio.</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-content">
+                    <h3 class="card-title">Drinkin' Beer. Talkin' God. Amen.</h3>
+                    <p>Featuring Florida Georgia Line, this hit celebrates small-town life and simple pleasures.</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-content">
+                    <h3 class="card-title">Ready Set Roll</h3>
+                    <p>The party anthem that launched Chase's solo career after his success writing "Cruise".</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+<!-- templates/winners.html -->
+{% extends "base.html" %}
+
+{% block title %}Winners - Chase Rice Fanpage{% endblock %}
+
+{% block content %}
+<div class="section">
+    <div class="container">
+        <h2 class="section-title">Raffle Winners</h2>
+
+        {% if winners %}
+            <div class="card">
+                <div class="card-content">
+                    <h3 class="card-title">Congratulations to Our Winners!</h3>
+
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid #fdbb2d;">
+                                <th style="text-align: left; padding: 10px;">Winner</th>
+                                <th style="text-align: left; padding: 10px;">Favorite Song</th>
+                                <th style="text-align: left; padding: 10px;">Date Won</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for winner in winners %}
+                            <tr style="border-bottom: 1px solid #eee;">
+                                <td style="padding: 10px;">{{ winner.name }}</td>
+                                <td style="padding: 10px;">{{ winner.favorite_song or "Not specified" }}</td>
+                                <td style="padding: 10px;">{{ winner.win_date }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% else %}
+            <div class="card">
+                <div class="card-content">
+                    <h3 class="card-title">No Winners Yet</h3>
+                    <p>No winners have been selected yet. Check back soon after the next raffle drawing!</p>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-content">
+                <h3 class="card-title">Enter the Raffle</h3>
+                <p>Want a chance to meet Chase Rice? Enter our raffle for a virtual Meet & Greet!</p>
+                <a href="{{ url_for('raffle') }}" class="btn">Enter Now</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
