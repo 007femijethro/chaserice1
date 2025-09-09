@@ -4,9 +4,11 @@
 {% block content %}
 <div class="hero">
     <div class="hero-content">
-        <h1>Chase Rice</h1>
-        <p>Country Music Artist & Songwriter</p>
-        <a href="{{ url_for('raffle') }}" class="btn">Enter Meet & Greet Raffle</a>
+        <h1>CHASE RICE</h1>
+        <p>Country Music Artist • Songwriter • Performer</p>
+        <a href="{{ url_for('raffle') }}" class="btn">
+            <i class="fas fa-ticket-alt"></i> Enter Meet & Greet Raffle
+        </a>
     </div>
 </div>
 
@@ -15,21 +17,28 @@
         <h2 class="section-title">Latest News</h2>
         <div class="grid">
             <div class="card">
+                <img src="https://www.countrynow.com/.image/t_share/MTk0MTA5Nzk1ODI3NjY0MDQ0/chase-rice-credit-jordan-bardwell.jpg" alt="New Music" class="card-img">
                 <div class="card-content">
-                    <h3 class="card-title">New Album Coming Soon</h3>
-                    <p>Chase is back in the studio working on his next album. Stay tuned for updates and release dates!</p>
+                    <h3 class="card-title">New Album "I Hate Cowboys & All Dogs Go To Hell" Out Now</h3>
+                    <p>Chase's latest album featuring hit singles "Key West & Colorado" and "Bench Seat" is available on all streaming platforms.</p>
+                    <a href="{{ url_for('music') }}" class="btn">Listen Now</a>
                 </div>
             </div>
+            
             <div class="card">
+                <img src="https://images.squarespace-cdn.com/content/v1/5a1c62e9a803bb8dfa6ce5c1/1675373992873-L8D0T2P6Q8U2F2G0Z2X2/Chase+Rice+Tour+2023.jpg" alt="Tour Dates" class="card-img">
                 <div class="card-content">
-                    <h3 class="card-title">Tour Dates Announced</h3>
-                    <p>The "Drinkin' Beer. Talkin' God. Amen." tour kicks off next month. Check your local listings for tickets.</p>
+                    <h3 class="card-title">2024 "I Hate Cowboys" Tour Announced</h3>
+                    <p>The nationwide tour kicks off in January 2024. Tickets are selling fast - don't miss your chance to see Chase live!</p>
+                    <a href="{{ url_for('tour') }}" class="btn">View Tour Dates</a>
                 </div>
             </div>
+            
             <div class="card">
+                <img src="https://www.nashville.com/wp-content/uploads/2023/03/Chase-Rice-Meet-Greet.jpg" alt="Raffle" class="card-img">
                 <div class="card-content">
-                    <h3 class="card-title">Raffle Winners</h3>
-                    <p>Congratulations to our latest Meet & Greet winners! Check out the winners page to see who got to meet Chase.</p>
+                    <h3 class="card-title">Meet & Greet Winners</h3>
+                    <p>Congratulations to our latest winners who got to meet Chase personally! Enter now for your chance.</p>
                     <a href="{{ url_for('winners') }}" class="btn">View Winners</a>
                 </div>
             </div>
@@ -37,26 +46,62 @@
     </div>
 </div>
 
-<div class="section" style="background: #f8f9fa;">
+<div class="section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
     <div class="container">
-        <h2 class="section-title">Featured Music</h2>
+        <h2 class="section-title" style="color: white;">Featured Music</h2>
+        <div class="album-grid">
+            <div class="album-card">
+                <img src="https://upload.wikimedia.org/wikipedia/en/2/2a/Chase_Rice_-_I_Hate_Cowboys_%26_All_Dogs_Go_To_Hell.png" alt="I Hate Cowboys & All Dogs Go To Hell" class="album-cover">
+                <h4>I Hate Cowboys & All Dogs Go To Hell</h4>
+                <p>2023 • Album</p>
+                <a href="https://open.spotify.com/album/3ZKz4e5i4zL3T7f2n3sFqR" target="_blank" class="listen-btn">Listen</a>
+            </div>
+            
+            <div class="album-card">
+                <img src="https://upload.wikimedia.org/wikipedia/en/4/4c/The_Album_%28Chase_Rice%29.png" alt="The Album" class="album-cover">
+                <h4>The Album</h4>
+                <p>2021 • Album</p>
+                <a href="https://open.spotify.com/album/4pQjOCQ3eW7K1tZzLg1q6R" target="_blank" class="listen-btn">Listen</a>
+            </div>
+            
+            <div class="album-card">
+                <img src="https://upload.wikimedia.org/wikipedia/en/9/9c/Lambs_%26_Lions_%28Chase_Rice%29.jpg" alt="Lambs & Lions" class="album-cover">
+                <h4>Lambs & Lions</h4>
+                <p>2017 • Album</p>
+                <a href="https://open.spotify.com/album/5e5K5l5y5O5q5a5a5a5a5a" target="_blank" class="listen-btn">Listen</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="section">
+    <div class="container">
+        <h2 class="section-title">Upcoming Events</h2>
         <div class="grid">
             <div class="card">
                 <div class="card-content">
-                    <h3 class="card-title">Eyes On You</h3>
-                    <p>Triple platinum single that became Chase's biggest hit to date, reaching No. 1 on Country radio.</p>
+                    <h3 class="card-title">Nashville Show</h3>
+                    <p><i class="fas fa-calendar"></i> January 15, 2024</p>
+                    <p><i class="fas fa-map-marker-alt"></i> Ryman Auditorium, Nashville TN</p>
+                    <a href="#" class="btn">Get Tickets</a>
                 </div>
             </div>
+            
             <div class="card">
                 <div class="card-content">
-                    <h3 class="card-title">Drinkin' Beer. Talkin' God. Amen.</h3>
-                    <p>Featuring Florida Georgia Line, this hit celebrates small-town life and simple pleasures.</p>
+                    <h3 class="card-title">Austin Concert</h3>
+                    <p><i class="fas fa-calendar"></i> January 20, 2024</p>
+                    <p><i class="fas fa-map-marker-alt"></i> Moody Center, Austin TX</p>
+                    <a href="#" class="btn">Get Tickets</a>
                 </div>
             </div>
+            
             <div class="card">
                 <div class="card-content">
-                    <h3 class="card-title">Ready Set Roll</h3>
-                    <p>The party anthem that launched Chase's solo career after his success writing "Cruise".</p>
+                    <h3 class="card-title">Denver Performance</h3>
+                    <p><i class="fas fa-calendar"></i> January 27, 2024</p>
+                    <p><i class="fas fa-map-marker-alt"></i> Red Rocks Amphitheatre, Denver CO</p>
+                    <a href="#" class="btn">Get Tickets</a>
                 </div>
             </div>
         </div>

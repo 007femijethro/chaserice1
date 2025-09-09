@@ -1,8 +1,16 @@
-modules = ["python-3.11", "web"]
-run = "run = \"python app.py\" language = \"python3\""
+run = "python app.py"
+language = "python3"
 
 [nix]
-channel = "stable-25_05"
+channel = "stable-22_05"
 
-[deployment]
-run = ["sh", "-c", "run = \"python https://replit.com/@007femijethro/chaserice1#main.py\" language = \"python3\""]
+[env]
+FLASK_APP = "app.py"
+FLASK_ENV = "development"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[agent]
+expertMode = true
