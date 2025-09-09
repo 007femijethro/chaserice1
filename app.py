@@ -270,6 +270,75 @@ def admin_member_detail(member_id):
 
     return render_template('admin_member_detail.html', member=member)
 
+@app.route('/admin/member/delete/<int:member_id>', methods=['POST'])
+def admin_delete_member(member_id):
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+
+    conn = get_db_connection()
+    member = conn.execute('SELECT * FROM members WHERE id = ?', (member_id,)).fetchone()
+    
+    if not member:
+        flash('Member not found.', 'error')
+        conn.close()
+        return redirect(url_for('admin_members'))
+
+    # Delete the member
+    conn.execute('DELETE FROM members WHERE id = ?', (member_id,))
+    conn.commit()
+    conn.close()
+
+    flash(f'Member "{member["username"]}" has been deleted successfully.', 'success')
+    return redirect(url_for('admin_members'))
+
+@app.route('/admin/member/add', methods=['GET', 'POST'])
+def admin_add_member():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+        first_name = request.form.get('first_name', '')
+        last_name = request.form.get('last_name', '')
+        phone_number = request.form.get('phone_number', '')
+        sex = request.form.get('sex', '')
+        date_of_birth = request.form.get('date_of_birth', '')
+        message_to_chase = request.form.get('message_to_chase', '')
+
+        # Validation
+        if not username or not email or not password:
+            flash('Please fill in all required fields.', 'error')
+            return redirect(url_for('admin_add_member'))
+
+        if len(password) < 6:
+            flash('Password must be at least 6 characters long.', 'error')
+            return redirect(url_for('admin_add_member'))
+
+        # Check if user already exists
+        conn = get_db_connection()
+        existing_user = conn.execute('SELECT * FROM members WHERE username = ? OR email = ?', 
+                                   (username, email)).fetchone()
+        
+        if existing_user:
+            flash('Username or email already exists.', 'error')
+            conn.close()
+            return redirect(url_for('admin_add_member'))
+
+        # Create new member
+        password_hash = generate_password_hash(password)
+        conn.execute('''INSERT INTO members (username, email, password_hash, first_name, last_name, phone_number, sex, date_of_birth, message_to_chase) 
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''', 
+                    (username, email, password_hash, first_name, last_name, phone_number, sex, date_of_birth, message_to_chase))
+        conn.commit()
+        conn.close()
+
+        flash(f'Member "{username}" has been added successfully.', 'success')
+        return redirect(url_for('admin_members'))
+
+    return render_template('admin_add_member.html')
+
 @app.route('/admin/pick_winner')
 def pick_winner():
     if not session.get('admin_logged_in'):

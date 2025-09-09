@@ -1,0 +1,87 @@
+<!-- templates/admin_add_member.html -->
+{% extends "base.html" %}
+
+{% block title %}Add New Member - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="section">
+    <div class="container">
+        <h2 class="section-title">Add New Member</h2>
+
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <a href="{{ url_for('admin_members') }}" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i> Back to Members
+            </a>
+        </div>
+
+        <div style="max-width: 600px; margin: 0 auto;">
+            <div class="card">
+                <div class="card-content">
+                    <h3 class="card-title">Create New Member Account</h3>
+                    
+                    <form method="POST">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div class="form-group">
+                                <label for="first_name">First Name:</label>
+                                <input type="text" id="first_name" name="first_name" class="form-control" placeholder="Enter first name">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="last_name">Last Name:</label>
+                                <input type="text" id="last_name" name="last_name" class="form-control" placeholder="Enter last name">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="username">Username: <span style="color: var(--secondary);">*</span></label>
+                            <input type="text" id="username" name="username" class="form-control" placeholder="Choose a username" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="email">Email: <span style="color: var(--secondary);">*</span></label>
+                            <input type="email" id="email" name="email" class="form-control" placeholder="Enter email address" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="password">Password: <span style="color: var(--secondary);">*</span></label>
+                            <input type="password" id="password" name="password" class="form-control" placeholder="Create a password (6+ characters)" required>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div class="form-group">
+                                <label for="phone_number">Phone Number:</label>
+                                <input type="tel" id="phone_number" name="phone_number" class="form-control" placeholder="Phone number">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="sex">Sex:</label>
+                                <select id="sex" name="sex" class="form-control">
+                                    <option value="">Select sex</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="other">Other</option>
+                                    <option value="prefer_not_to_say">Prefer not to say</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="date_of_birth">Date of Birth:</label>
+                                <input type="date" id="date_of_birth" name="date_of_birth" class="form-control">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="message_to_chase">Message to Chase Rice:</label>
+                            <textarea id="message_to_chase" name="message_to_chase" class="form-control" rows="3" placeholder="Optional message to Chase Rice" style="resize: vertical;"></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn" style="width: 100%; margin-top: 1rem;">
+                            <i class="fas fa-user-plus"></i> Add Member
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

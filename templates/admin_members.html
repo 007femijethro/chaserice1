@@ -12,6 +12,9 @@
             <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline">
                 <i class="fas fa-arrow-left"></i> Back to Dashboard
             </a>
+            <a href="{{ url_for('admin_add_member') }}" class="btn" style="margin-left: 1rem;">
+                <i class="fas fa-user-plus"></i> Add New Member
+            </a>
         </div>
 
         <div class="card">
@@ -45,9 +48,17 @@
                                     <td style="padding: 12px;">{{ member.registration_date.split(' ')[0] if member.registration_date else "Unknown" }}</td>
                                     <td style="padding: 12px;">
                                         <a href="{{ url_for('admin_member_detail', member_id=member.id) }}" 
-                                           style="background: var(--accent); color: white; padding: 5px 10px; border-radius: 5px; text-decoration: none; font-size: 0.8rem;">
+                                           style="background: var(--accent); color: white; padding: 5px 10px; border-radius: 5px; text-decoration: none; font-size: 0.8rem; margin-right: 5px;">
                                             <i class="fas fa-eye"></i> View
                                         </a>
+                                        <form method="POST" action="{{ url_for('admin_delete_member', member_id=member.id) }}" 
+                                              style="display: inline;" 
+                                              onsubmit="return confirm('Are you sure you want to delete member {{ member.username }}? This action cannot be undone.')">
+                                            <button type="submit" 
+                                                    style="background: var(--secondary); color: white; padding: 5px 10px; border-radius: 5px; border: none; font-size: 0.8rem; cursor: pointer;">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </button>
+                                        </form>
                                     </td>
                                 </tr>
                                 {% endfor %}
