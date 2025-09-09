@@ -32,6 +32,7 @@
                                     <th style="text-align: left; padding: 12px;">Phone</th>
                                     <th style="text-align: left; padding: 12px;">Sex</th>
                                     <th style="text-align: left; padding: 12px;">DOB</th>
+                                    <th style="text-align: left; padding: 12px;">Newsletter</th>
                                     <th style="text-align: left; padding: 12px;">Registered</th>
                                     <th style="text-align: left; padding: 12px;">Actions</th>
                                 </tr>
@@ -45,6 +46,13 @@
                                     <td style="padding: 12px;">{{ member.phone_number or "Not provided" }}</td>
                                     <td style="padding: 12px;">{{ member.sex or "Not specified" }}</td>
                                     <td style="padding: 12px;">{{ member.date_of_birth or "Not provided" }}</td>
+                                    <td style="padding: 12px;">
+                                        {% if member.newsletter_subscription %}
+                                            <span style="color: var(--accent); font-weight: 600;"><i class="fas fa-check-circle"></i> Yes</span>
+                                        {% else %}
+                                            <span style="color: #999;"><i class="fas fa-times-circle"></i> No</span>
+                                        {% endif %}
+                                    </td>
                                     <td style="padding: 12px;">{{ member.registration_date.split(' ')[0] if member.registration_date else "Unknown" }}</td>
                                     <td style="padding: 12px;">
                                         <a href="{{ url_for('admin_member_detail', member_id=member.id) }}" 

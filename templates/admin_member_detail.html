@@ -48,6 +48,13 @@
                         <div style="background: rgba(26, 42, 108, 0.05); padding: 1.5rem; border-radius: 8px; border-left: 4px solid var(--primary);">
                             <p><strong>Member ID:</strong> {{ member.id }}</p>
                             <p><strong>Registration Date:</strong> {{ member.registration_date }}</p>
+                            <p><strong>Newsletter Subscription:</strong> 
+                                {% if member.newsletter_subscription %}
+                                    <span style="color: var(--accent); font-weight: 600;"><i class="fas fa-check-circle"></i> Subscribed</span>
+                                {% else %}
+                                    <span style="color: #999;"><i class="fas fa-times-circle"></i> Not subscribed</span>
+                                {% endif %}
+                            </p>
                             <p><strong>Account Status:</strong> <span style="color: green; font-weight: 600;">Active</span></p>
                         </div>
                     </div>
