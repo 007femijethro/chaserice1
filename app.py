@@ -39,7 +39,20 @@ def init_db():
                   phone_number TEXT,
                   sex TEXT,
                   date_of_birth TEXT,
+                  message_to_chase TEXT,
+                  newsletter_subscription INTEGER DEFAULT 0,
                   registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
+    
+    # Add missing columns to existing members table if they don't exist
+    try:
+        c.execute("ALTER TABLE members ADD COLUMN message_to_chase TEXT")
+    except sqlite3.OperationalError:
+        pass  # Column already exists
+    
+    try:
+        c.execute("ALTER TABLE members ADD COLUMN newsletter_subscription INTEGER DEFAULT 0")
+    except sqlite3.OperationalError:
+        pass  # Column already exists
 
     # Create winners table
     c.execute('''CREATE TABLE IF NOT EXISTS winners
@@ -144,6 +157,7 @@ def member_register():
         sex = request.form.get('sex', '')
         date_of_birth = request.form.get('date_of_birth', '')
         message_to_chase = request.form.get('message_to_chase', '')
+        newsletter_subscription = 1 if request.form.get('newsletter_subscription') else 0
 
         # Validation
         if not username or not email or not password:
@@ -170,9 +184,9 @@ def member_register():
 
         # Create new member
         password_hash = generate_password_hash(password)
-        conn.execute('''INSERT INTO members (username, email, password_hash, first_name, last_name, phone_number, sex, date_of_birth, message_to_chase) 
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''', 
-                    (username, email, password_hash, first_name, last_name, phone_number, sex, date_of_birth, message_to_chase))
+        conn.execute('''INSERT INTO members (username, email, password_hash, first_name, last_name, phone_number, sex, date_of_birth, message_to_chase, newsletter_subscription) 
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', 
+                    (username, email, password_hash, first_name, last_name, phone_number, sex, date_of_birth, message_to_chase, newsletter_subscription))
         conn.commit()
         conn.close()
 
@@ -306,6 +320,7 @@ def admin_add_member():
         sex = request.form.get('sex', '')
         date_of_birth = request.form.get('date_of_birth', '')
         message_to_chase = request.form.get('message_to_chase', '')
+        newsletter_subscription = 1 if request.form.get('newsletter_subscription') else 0
 
         # Validation
         if not username or not email or not password:
@@ -328,9 +343,9 @@ def admin_add_member():
 
         # Create new member
         password_hash = generate_password_hash(password)
-        conn.execute('''INSERT INTO members (username, email, password_hash, first_name, last_name, phone_number, sex, date_of_birth, message_to_chase) 
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''', 
-                    (username, email, password_hash, first_name, last_name, phone_number, sex, date_of_birth, message_to_chase))
+        conn.execute('''INSERT INTO members (username, email, password_hash, first_name, last_name, phone_number, sex, date_of_birth, message_to_chase, newsletter_subscription) 
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', 
+                    (username, email, password_hash, first_name, last_name, phone_number, sex, date_of_birth, message_to_chase, newsletter_subscription))
         conn.commit()
         conn.close()
 
