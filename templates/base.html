@@ -652,59 +652,6 @@
             {% endif %}
         {% endwith %}
 
-        <!-- Hero Slideshow Section -->
-        <section class="hero-slideshow">
-            <!-- Slide 1 -->
-            <div class="slide active" style="background-image: url('https://www.chaserice.com/cdn/shop/files/eldorabanner.jpg?v=1754668094&width=2000');">
-                <div class="slide-content">
-                    <h1>Chase Rice</h1>
-                    <p>Experience the music, feel the energy</p>
-                    <a href="https://temple.groover.co/chase-rice" target="_blank" class="btn">Listen Now</a>
-                </div>
-            </div>
-            
-            <!-- Slide 2 -->
-            <div class="slide" style="background-image: url('https://www.chaserice.com/cdn/shop/files/CR-GDW-Banner-update.jpg?v=1741710583&width=2000');">
-                <div class="slide-content">
-                    <h1>New Album Out</h1>
-                    <p>Featuring the hit single "Drinkin' Beer. Talkin' God. Amen."</p>
-                    <a href="https://temple.groover.co/chase-rice" target="_blank" class="btn">Discover More</a>
-                </div>
-            </div>
-            
-            <!-- Slide 3 -->
-            <div class="slide" style="background-image: url('https://www.chaserice.com/cdn/shop/files/Screenshot%202024-07-02%20at%2010.18.06%20AM.png?v=1751469541&width=2000');">
-                <div class="slide-content">
-                    <h1>Tour 2023</h1>
-                    <p>Coming to a city near you. Don't miss out!</p>
-                    <a href="https://www.chaserice.com/pages/tour" class="btn">Get Tickets</a>
-                </div>
-            </div>
-            
-            <!-- Slide 4 -->
-            <div class="slide" style="background-image: url('https://www.chaserice.com/cdn/shop/files/websitebanner.jpg?v=1754667693&width=2000');">
-                <div class="slide-content">
-                    <h1>Join The Fan Club</h1>
-                    <p>Exclusive content, presales, and more</p>
-                    <a href="{{ url_for('raffle') }}" class="btn">Sign Up</a>
-                </div>
-            </div>
-            
-            <!-- Slideshow Controls -->
-            <div class="slideshow-controls">
-                <div class="slideshow-dot active" data-slide="0"></div>
-                <div class="slideshow-dot" data-slide="1"></div>
-                <div class="slideshow-dot" data-slide="2"></div>
-                <div class="slideshow-dot" data-slide="3"></div>
-            </div>
-            
-            <!-- Navigation Arrows -->
-            <div class="slideshow-nav">
-                <button id="prev-slide"><i class="fas fa-chevron-left"></i></button>
-                <button id="next-slide"><i class="fas fa-chevron-right"></i></button>
-            </div>
-        </section>
-
         {% block content %}
         <!-- Default content if no other content is provided -->
         <section class="section">

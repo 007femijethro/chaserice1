@@ -2,15 +2,58 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="hero">
-    <div class="hero-content">
-        <h1>CHASE RICE</h1>
-        <p>Country Music Artist • Songwriter • Performer</p>
-        <a href="{{ url_for('raffle') }}" class="btn">
-            <i class="fas fa-ticket-alt"></i> Enter Meet & Greet Raffle
-        </a>
+<!-- Hero Slideshow Section -->
+<section class="hero-slideshow">
+    <!-- Slide 1 -->
+    <div class="slide active" style="background-image: url('https://www.chaserice.com/cdn/shop/files/eldorabanner.jpg?v=1754668094&width=2000');">
+        <div class="slide-content">
+            <h1>Chase Rice</h1>
+            <p>Experience the music, feel the energy</p>
+            <a href="https://temple.groover.co/chase-rice" target="_blank" class="btn">Listen Now</a>
+        </div>
     </div>
-</div>
+    
+    <!-- Slide 2 -->
+    <div class="slide" style="background-image: url('https://www.chaserice.com/cdn/shop/files/CR-GDW-Banner-update.jpg?v=1741710583&width=2000');">
+        <div class="slide-content">
+            <h1>New Album Out</h1>
+            <p>Featuring the hit single "Drinkin' Beer. Talkin' God. Amen."</p>
+            <a href="https://temple.groover.co/chase-rice" target="_blank" class="btn">Discover More</a>
+        </div>
+    </div>
+    
+    <!-- Slide 3 -->
+    <div class="slide" style="background-image: url('https://www.chaserice.com/cdn/shop/files/Screenshot%202024-07-02%20at%2010.18.06%20AM.png?v=1751469541&width=2000');">
+        <div class="slide-content">
+            <h1>Tour 2023</h1>
+            <p>Coming to a city near you. Don't miss out!</p>
+            <a href="https://www.chaserice.com/pages/tour" class="btn">Get Tickets</a>
+        </div>
+    </div>
+    
+    <!-- Slide 4 -->
+    <div class="slide" style="background-image: url('https://www.chaserice.com/cdn/shop/files/websitebanner.jpg?v=1754667693&width=2000');">
+        <div class="slide-content">
+            <h1>Join The Fan Club</h1>
+            <p>Exclusive content, presales, and more</p>
+            <a href="{{ url_for('raffle') }}" class="btn">Sign Up</a>
+        </div>
+    </div>
+    
+    <!-- Slideshow Controls -->
+    <div class="slideshow-controls">
+        <div class="slideshow-dot active" data-slide="0"></div>
+        <div class="slideshow-dot" data-slide="1"></div>
+        <div class="slideshow-dot" data-slide="2"></div>
+        <div class="slideshow-dot" data-slide="3"></div>
+    </div>
+    
+    <!-- Navigation Arrows -->
+    <div class="slideshow-nav">
+        <button id="prev-slide"><i class="fas fa-chevron-left"></i></button>
+        <button id="next-slide"><i class="fas fa-chevron-right"></i></button>
+    </div>
+</section>
 
 <div class="section">
     <div class="container">
@@ -107,4 +150,50 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const slides = document.querySelectorAll('.slide');
+    const dots = document.querySelectorAll('.slideshow-dot');
+    const prevBtn = document.getElementById('prev-slide');
+    const nextBtn = document.getElementById('next-slide');
+    let currentSlide = 0;
+    const totalSlides = slides.length;
+
+    function showSlide(index) {
+        // Hide all slides
+        slides.forEach(slide => slide.classList.remove('active'));
+        dots.forEach(dot => dot.classList.remove('active'));
+        
+        // Show current slide
+        slides[index].classList.add('active');
+        dots[index].classList.add('active');
+    }
+
+    function nextSlide() {
+        currentSlide = (currentSlide + 1) % totalSlides;
+        showSlide(currentSlide);
+    }
+
+    function prevSlide() {
+        currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+        showSlide(currentSlide);
+    }
+
+    // Auto-advance slides
+    setInterval(nextSlide, 7000);
+
+    // Navigation buttons
+    if (nextBtn) nextBtn.addEventListener('click', nextSlide);
+    if (prevBtn) prevBtn.addEventListener('click', prevSlide);
+
+    // Dot navigation
+    dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => {
+            currentSlide = index;
+            showSlide(currentSlide);
+        });
+    });
+});
+</script>
 {% endblock %}
