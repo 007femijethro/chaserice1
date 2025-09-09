@@ -32,6 +32,17 @@
                         </div>
                     </div>
                     
+                    {% if member.message_to_chase %}
+                    <div>
+                        <h4 style="color: var(--primary); margin-bottom: 1rem;">Message to Chase Rice</h4>
+                        <div style="background: rgba(253, 187, 45, 0.1); padding: 1.5rem; border-radius: 8px; border-left: 4px solid var(--accent);">
+                            <p style="font-style: italic; color: var(--text); line-height: 1.6;">
+                                "{{ member.message_to_chase }}"
+                            </p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
                     <div>
                         <h4 style="color: var(--primary); margin-bottom: 1rem;">Account Information</h4>
                         <div style="background: rgba(26, 42, 108, 0.05); padding: 1.5rem; border-radius: 8px; border-left: 4px solid var(--primary);">

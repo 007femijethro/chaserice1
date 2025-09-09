@@ -143,6 +143,7 @@ def member_register():
         phone_number = request.form.get('phone_number', '')
         sex = request.form.get('sex', '')
         date_of_birth = request.form.get('date_of_birth', '')
+        message_to_chase = request.form.get('message_to_chase', '')
 
         # Validation
         if not username or not email or not password:
@@ -169,9 +170,9 @@ def member_register():
 
         # Create new member
         password_hash = generate_password_hash(password)
-        conn.execute('''INSERT INTO members (username, email, password_hash, first_name, last_name, phone_number, sex, date_of_birth) 
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?)''', 
-                    (username, email, password_hash, first_name, last_name, phone_number, sex, date_of_birth))
+        conn.execute('''INSERT INTO members (username, email, password_hash, first_name, last_name, phone_number, sex, date_of_birth, message_to_chase) 
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''', 
+                    (username, email, password_hash, first_name, last_name, phone_number, sex, date_of_birth, message_to_chase))
         conn.commit()
         conn.close()
 
