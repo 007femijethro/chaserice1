@@ -1,8 +1,11 @@
 # app.py
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 import sqlite3
 import os
 import random
+import threading
+import time
+import requests
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -42,13 +45,13 @@ def init_db():
                   message_to_chase TEXT,
                   newsletter_subscription INTEGER DEFAULT 0,
                   registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
-    
+
     # Add missing columns to existing members table if they don't exist
     try:
         c.execute("ALTER TABLE members ADD COLUMN message_to_chase TEXT")
     except sqlite3.OperationalError:
         pass  # Column already exists
-    
+
     try:
         c.execute("ALTER TABLE members ADD COLUMN newsletter_subscription INTEGER DEFAULT 0")
     except sqlite3.OperationalError:
@@ -98,6 +101,33 @@ def member_required(f):
             return redirect(url_for('member_login'))
         return f(*args, **kwargs)
     return decorated_function
+
+# Health check endpoint to prevent spinning down
+@app.route('/health')
+def health_check():
+    return jsonify({
+        'status': 'healthy', 
+        'timestamp': datetime.now().isoformat(),
+        'message': 'Chase Rice Fan Page is awake and running'
+    })
+
+# Background thread for self-pinging (optional)
+def keep_alive():
+    """Background thread to self-ping the application"""
+    while True:
+        try:
+            # This will work when running locally
+            requests.get('http://localhost:5000/health', timeout=5)
+            print(f"Self-ping at {datetime.now()}")
+        except requests.exceptions.RequestException:
+            try:
+                # Fallback for production environments
+                base_url = os.environ.get('BASE_URL', 'http://localhost:5000')
+                requests.get(f'{base_url}/health', timeout=5)
+                print(f"Self-ping at {datetime.now()}")
+            except:
+                print("Self-ping failed")
+        time.sleep(300)  # Ping every 5 minutes (less than 15-minute timeout)
 
 # Routes
 @app.route('/')
@@ -193,7 +223,7 @@ def member_register():
         conn = get_db_connection()
         existing_user = conn.execute('SELECT * FROM members WHERE username = ? OR email = ?', 
                                    (username, email)).fetchone()
-        
+
         if existing_user:
             flash('Username or email already exists.', 'error')
             conn.close()
@@ -308,7 +338,7 @@ def admin_delete_member(member_id):
 
     conn = get_db_connection()
     member = conn.execute('SELECT * FROM members WHERE id = ?', (member_id,)).fetchone()
-    
+
     if not member:
         flash('Member not found.', 'error')
         conn.close()
@@ -352,7 +382,7 @@ def admin_add_member():
         conn = get_db_connection()
         existing_user = conn.execute('SELECT * FROM members WHERE username = ? OR email = ?', 
                                    (username, email)).fetchone()
-        
+
         if existing_user:
             flash('Username or email already exists.', 'error')
             conn.close()
@@ -419,7 +449,7 @@ def admin_delete_tour(tour_id):
 
     conn = get_db_connection()
     tour = conn.execute('SELECT * FROM tours WHERE id = ?', (tour_id,)).fetchone()
-    
+
     if not tour:
         flash('Tour not found.', 'error')
         conn.close()
@@ -470,4 +500,8 @@ def admin_logout():
 
 if __name__ == '__main__':
     init_db()
+
+    # Start the keep-alive thread (optional - uncomment if you want automatic pinging)
+    # threading.Thread(target=keep_alive, daemon=True).start()
+
     app.run(host='0.0.0.0', port=5000, debug=True)
