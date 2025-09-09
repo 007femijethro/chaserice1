@@ -1,0 +1,26 @@
+OperationalError
+sqlite3.OperationalError: no such column: phone_number
+
+Traceback (most recent call last)
+File "/nix/store/dgbj6msm8ifqi8q2aa3bhjiwbklqyvxp-python3.9-Flask-2.1.2/lib/python3.9/site-packages/flask/app.py", line 2095, in __call__
+return self.wsgi_app(environ, start_response)
+File "/nix/store/dgbj6msm8ifqi8q2aa3bhjiwbklqyvxp-python3.9-Flask-2.1.2/lib/python3.9/site-packages/flask/app.py", line 2080, in wsgi_app
+response = self.handle_exception(e)
+File "/nix/store/dgbj6msm8ifqi8q2aa3bhjiwbklqyvxp-python3.9-Flask-2.1.2/lib/python3.9/site-packages/flask/app.py", line 2077, in wsgi_app
+response = self.full_dispatch_request()
+File "/nix/store/dgbj6msm8ifqi8q2aa3bhjiwbklqyvxp-python3.9-Flask-2.1.2/lib/python3.9/site-packages/flask/app.py", line 1525, in full_dispatch_request
+rv = self.handle_user_exception(e)
+File "/nix/store/dgbj6msm8ifqi8q2aa3bhjiwbklqyvxp-python3.9-Flask-2.1.2/lib/python3.9/site-packages/flask/app.py", line 1523, in full_dispatch_request
+rv = self.dispatch_request()
+File "/nix/store/dgbj6msm8ifqi8q2aa3bhjiwbklqyvxp-python3.9-Flask-2.1.2/lib/python3.9/site-packages/flask/app.py", line 1509, in dispatch_request
+return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+File "/home/runner/workspace/app.py", line 251, in admin_members
+members = conn.execute('''SELECT id, username, email, first_name, last_name, phone_number, sex, date_of_birth, registration_date
+sqlite3.OperationalError: no such column: phone_number
+The debugger caught an exception in your WSGI application. You can now look at the traceback which led to the error.
+To switch between the interactive traceback and the plaintext one, you can click on the "Traceback" headline. From the text traceback you can also create a paste of it. For code execution mouse-over the frame you want to debug and click on the console icon on the right side.
+
+You can execute arbitrary Python code in the stack frames and there are some extra helpers available for introspection:
+
+dump() shows all variables in the frame
+dump(obj) dumps all that's known about the object

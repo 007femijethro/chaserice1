@@ -1,6 +1,6 @@
 run = "python app.py"
 language = "python3"
-modules = ["python-3.11"]
+modules = ["python-3.11", "postgresql-16"]
 
 [nix]
 channel = "stable-22_05"
