@@ -13,20 +13,32 @@
                 <h3 class="card-title">Featured Albums</h3>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin: 2rem 0;">
                     <div style="text-align: center;">
-                        <img src="{{ url_for('static', filename='images/album-the-album.png') }}" alt="The Album cover" 
-                             style="width: 200px; height: 200px; object-fit: cover; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); margin-bottom: 1rem;">
+                        <div style="width: 200px; height: 200px; margin: 0 auto 1rem auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center;">
+                            <div style="color: white; text-align: center;">
+                                <i class="fas fa-music" style="font-size: 3rem; margin-bottom: 0.5rem;"></i>
+                                <div style="font-weight: bold;">THE<br>ALBUM</div>
+                            </div>
+                        </div>
                         <h4 style="color: var(--primary); margin-bottom: 0.5rem;">The Album</h4>
                         <p style="color: var(--text-light); font-size: 0.9rem;">2021 • Dack Janiels Records</p>
                     </div>
                     <div style="text-align: center;">
-                        <img src="{{ url_for('static', filename='images/album-lambs-lions.png') }}" alt="Lambs & Lions cover" 
-                             style="width: 200px; height: 200px; object-fit: cover; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); margin-bottom: 1rem;">
+                        <div style="width: 200px; height: 200px; margin: 0 auto 1rem auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); background: linear-gradient(135deg, #333 0%, var(--accent) 100%); display: flex; align-items: center; justify-content: center;">
+                            <div style="color: white; text-align: center;">
+                                <i class="fas fa-compact-disc" style="font-size: 3rem; margin-bottom: 0.5rem;"></i>
+                                <div style="font-weight: bold; font-size: 0.9rem;">LAMBS &<br>LIONS</div>
+                            </div>
+                        </div>
                         <h4 style="color: var(--primary); margin-bottom: 0.5rem;">Lambs & Lions</h4>
                         <p style="color: var(--text-light); font-size: 0.9rem;">2017 • Broken Bow Records</p>
                     </div>
                     <div style="text-align: center;">
-                        <img src="{{ url_for('static', filename='images/album-ignite-night.png') }}" alt="Ignite the Night cover" 
-                             style="width: 200px; height: 200px; object-fit: cover; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); margin-bottom: 1rem;">
+                        <div style="width: 200px; height: 200px; margin: 0 auto 1rem auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); background: linear-gradient(135deg, #000 0%, #ff6b35 100%); display: flex; align-items: center; justify-content: center;">
+                            <div style="color: white; text-align: center;">
+                                <i class="fas fa-fire" style="font-size: 3rem; margin-bottom: 0.5rem;"></i>
+                                <div style="font-weight: bold; font-size: 0.8rem;">IGNITE THE<br>NIGHT</div>
+                            </div>
+                        </div>
                         <h4 style="color: var(--primary); margin-bottom: 0.5rem;">Ignite the Night</h4>
                         <p style="color: var(--text-light); font-size: 0.9rem;">2014 • Columbia Nashville</p>
                     </div>
