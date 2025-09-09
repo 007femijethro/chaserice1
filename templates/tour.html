@@ -12,28 +12,28 @@
             <div class="card-content">
                 <h3 class="card-title">Upcoming Shows</h3>
                 
-                <div class="grid" style="grid-template-columns: 1fr; gap: 1rem;">
-                    <div style="padding: 1rem; border-left: 4px solid var(--accent); background: rgba(253, 187, 45, 0.05); border-radius: 0 8px 8px 0;">
-                        <h4 style="color: var(--primary); margin-bottom: 0.5rem;">Nashville Show</h4>
-                        <p><i class="fas fa-calendar" style="color: var(--accent);"></i> January 15, 2024</p>
-                        <p><i class="fas fa-map-marker-alt" style="color: var(--accent);"></i> Ryman Auditorium, Nashville TN</p>
-                        <a href="https://www.chaserice.com/pages/tour" target="_blank" class="btn btn-outline">Get Tickets</a>
+                {% if tours %}
+                    <div class="grid" style="grid-template-columns: 1fr; gap: 1rem;">
+                        {% for tour in tours %}
+                        <div style="padding: 1rem; border-left: 4px solid var(--accent); background: rgba(253, 187, 45, 0.05); border-radius: 0 8px 8px 0;">
+                            <h4 style="color: var(--primary); margin-bottom: 0.5rem;">{{ tour.venue }}</h4>
+                            <p><i class="fas fa-calendar" style="color: var(--accent);"></i> {{ tour.date }}</p>
+                            <p><i class="fas fa-map-marker-alt" style="color: var(--accent);"></i> {{ tour.venue }}, {{ tour.city }}, {{ tour.state_or_country }}</p>
+                            {% if tour.ticket_url %}
+                                <a href="{{ tour.ticket_url }}" target="_blank" class="btn btn-outline">Get Tickets</a>
+                            {% else %}
+                                <a href="https://www.chaserice.com/pages/tour" target="_blank" class="btn btn-outline">Get Tickets</a>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
                     </div>
-                    
-                    <div style="padding: 1rem; border-left: 4px solid var(--accent); background: rgba(253, 187, 45, 0.05); border-radius: 0 8px 8px 0;">
-                        <h4 style="color: var(--primary); margin-bottom: 0.5rem;">Austin Concert</h4>
-                        <p><i class="fas fa-calendar" style="color: var(--accent);"></i> January 20, 2024</p>
-                        <p><i class="fas fa-map-marker-alt" style="color: var(--accent);"></i> Moody Center, Austin TX</p>
-                        <a href="https://www.chaserice.com/pages/tour" target="_blank" class="btn btn-outline">Get Tickets</a>
+                {% else %}
+                    <div style="text-align: center; padding: 3rem;">
+                        <i class="fas fa-calendar-alt" style="font-size: 3rem; color: var(--text-light); margin-bottom: 1rem;"></i>
+                        <p style="color: var(--text); margin-bottom: 1rem;">No tour dates scheduled yet.</p>
+                        <p style="color: var(--text-light);">Check back soon for upcoming shows!</p>
                     </div>
-                    
-                    <div style="padding: 1rem; border-left: 4px solid var(--accent); background: rgba(253, 187, 45, 0.05); border-radius: 0 8px 8px 0;">
-                        <h4 style="color: var(--primary); margin-bottom: 0.5rem;">Denver Performance</h4>
-                        <p><i class="fas fa-calendar" style="color: var(--accent);"></i> January 27, 2024</p>
-                        <p><i class="fas fa-map-marker-alt" style="color: var(--accent);"></i> Red Rocks Amphitheatre, Denver CO</p>
-                        <a href="https://www.chaserice.com/pages/tour" target="_blank" class="btn btn-outline">Get Tickets</a>
-                    </div>
-                </div>
+                {% endif %}
             </div>
         </div>
 

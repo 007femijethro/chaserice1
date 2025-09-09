@@ -61,6 +61,16 @@ def init_db():
                   win_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                   FOREIGN KEY(raffle_id) REFERENCES raffle_entries(id))''')
 
+    # Create tours table
+    c.execute('''CREATE TABLE IF NOT EXISTS tours
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  date TEXT NOT NULL,
+                  venue TEXT NOT NULL,
+                  city TEXT NOT NULL,
+                  state_or_country TEXT NOT NULL,
+                  ticket_url TEXT,
+                  created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
+
     # Insert default admin user if not exists
     password_hash = generate_password_hash('admin123')
     try:
@@ -107,7 +117,10 @@ def music():
 @app.route('/tour')
 @member_required
 def tour():
-    return render_template('tour.html')
+    conn = get_db_connection()
+    tours = conn.execute('SELECT * FROM tours ORDER BY date ASC').fetchall()
+    conn.close()
+    return render_template('tour.html', tours=tours)
 
 @app.route('/raffle', methods=['GET', 'POST'])
 @member_required
@@ -353,6 +366,68 @@ def admin_add_member():
         return redirect(url_for('admin_members'))
 
     return render_template('admin_add_member.html')
+
+@app.route('/admin/tours')
+def admin_tours():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+
+    conn = get_db_connection()
+    tours = conn.execute('SELECT * FROM tours ORDER BY date ASC').fetchall()
+    conn.close()
+
+    return render_template('admin_tours.html', tours=tours)
+
+@app.route('/admin/tour/add', methods=['GET', 'POST'])
+def admin_add_tour():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+
+    if request.method == 'POST':
+        date = request.form['date']
+        venue = request.form['venue']
+        city = request.form['city']
+        state_or_country = request.form['state_or_country']
+        ticket_url = request.form.get('ticket_url', '')
+
+        # Validation
+        if not date or not venue or not city or not state_or_country:
+            flash('Please fill in all required fields.', 'error')
+            return redirect(url_for('admin_add_tour'))
+
+        # Create new tour
+        conn = get_db_connection()
+        conn.execute('''INSERT INTO tours (date, venue, city, state_or_country, ticket_url) 
+                       VALUES (?, ?, ?, ?, ?)''', 
+                    (date, venue, city, state_or_country, ticket_url))
+        conn.commit()
+        conn.close()
+
+        flash(f'Tour date at {venue} has been added successfully.', 'success')
+        return redirect(url_for('admin_tours'))
+
+    return render_template('admin_add_tour.html')
+
+@app.route('/admin/tour/delete/<int:tour_id>', methods=['POST'])
+def admin_delete_tour(tour_id):
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+
+    conn = get_db_connection()
+    tour = conn.execute('SELECT * FROM tours WHERE id = ?', (tour_id,)).fetchone()
+    
+    if not tour:
+        flash('Tour not found.', 'error')
+        conn.close()
+        return redirect(url_for('admin_tours'))
+
+    # Delete the tour
+    conn.execute('DELETE FROM tours WHERE id = ?', (tour_id,))
+    conn.commit()
+    conn.close()
+
+    flash(f'Tour at {tour["venue"]} has been deleted successfully.', 'success')
+    return redirect(url_for('admin_tours'))
 
 @app.route('/admin/pick_winner')
 def pick_winner():
