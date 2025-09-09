@@ -1,0 +1,64 @@
+<!-- templates/admin_members.html -->
+{% extends "base.html" %}
+
+{% block title %}Manage Members - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="section">
+    <div class="container">
+        <h2 class="section-title">Manage Members</h2>
+
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-content">
+                <h3 class="card-title">Registered Members ({{ members|length }})</h3>
+
+                {% if members %}
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--accent); background: rgba(253, 187, 45, 0.1);">
+                                    <th style="text-align: left; padding: 12px;">Username</th>
+                                    <th style="text-align: left; padding: 12px;">Name</th>
+                                    <th style="text-align: left; padding: 12px;">Email</th>
+                                    <th style="text-align: left; padding: 12px;">Phone</th>
+                                    <th style="text-align: left; padding: 12px;">Sex</th>
+                                    <th style="text-align: left; padding: 12px;">DOB</th>
+                                    <th style="text-align: left; padding: 12px;">Registered</th>
+                                    <th style="text-align: left; padding: 12px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for member in members %}
+                                <tr style="border-bottom: 1px solid #eee;">
+                                    <td style="padding: 12px; font-weight: 600; color: var(--primary);">{{ member.username }}</td>
+                                    <td style="padding: 12px;">{{ member.first_name }} {{ member.last_name }}</td>
+                                    <td style="padding: 12px;">{{ member.email }}</td>
+                                    <td style="padding: 12px;">{{ member.phone_number or "Not provided" }}</td>
+                                    <td style="padding: 12px;">{{ member.sex or "Not specified" }}</td>
+                                    <td style="padding: 12px;">{{ member.date_of_birth or "Not provided" }}</td>
+                                    <td style="padding: 12px;">{{ member.registration_date.split(' ')[0] if member.registration_date else "Unknown" }}</td>
+                                    <td style="padding: 12px;">
+                                        <a href="{{ url_for('admin_member_detail', member_id=member.id) }}" 
+                                           style="background: var(--accent); color: white; padding: 5px 10px; border-radius: 5px; text-decoration: none; font-size: 0.8rem;">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p style="text-align: center; color: var(--text); margin: 2rem 0;">No members have registered yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

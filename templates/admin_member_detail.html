@@ -1,0 +1,68 @@
+<!-- templates/admin_member_detail.html -->
+{% extends "base.html" %}
+
+{% block title %}Member Details - {{ member.username }}{% endblock %}
+
+{% block content %}
+<div class="section">
+    <div class="container">
+        <h2 class="section-title">Member Details</h2>
+
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <a href="{{ url_for('admin_members') }}" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i> Back to Members
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-content">
+                <h3 class="card-title">{{ member.username }}</h3>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 2rem;">
+                    <div>
+                        <h4 style="color: var(--primary); margin-bottom: 1rem;">Personal Information</h4>
+                        <div style="background: rgba(253, 187, 45, 0.05); padding: 1.5rem; border-radius: 8px; border-left: 4px solid var(--accent);">
+                            <p><strong>First Name:</strong> {{ member.first_name or "Not provided" }}</p>
+                            <p><strong>Last Name:</strong> {{ member.last_name or "Not provided" }}</p>
+                            <p><strong>Username:</strong> {{ member.username }}</p>
+                            <p><strong>Email:</strong> {{ member.email }}</p>
+                            <p><strong>Phone Number:</strong> {{ member.phone_number or "Not provided" }}</p>
+                            <p><strong>Sex:</strong> {{ member.sex or "Not specified" }}</p>
+                            <p><strong>Date of Birth:</strong> {{ member.date_of_birth or "Not provided" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 style="color: var(--primary); margin-bottom: 1rem;">Account Information</h4>
+                        <div style="background: rgba(26, 42, 108, 0.05); padding: 1.5rem; border-radius: 8px; border-left: 4px solid var(--primary);">
+                            <p><strong>Member ID:</strong> {{ member.id }}</p>
+                            <p><strong>Registration Date:</strong> {{ member.registration_date }}</p>
+                            <p><strong>Account Status:</strong> <span style="color: green; font-weight: 600;">Active</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                {% if member.date_of_birth %}
+                <div style="margin-top: 2rem;">
+                    <h4 style="color: var(--primary); margin-bottom: 1rem;">Additional Info</h4>
+                    <div style="background: rgba(178, 31, 31, 0.05); padding: 1.5rem; border-radius: 8px; border-left: 4px solid var(--secondary);">
+                        {% set birth_year = member.date_of_birth.split('-')[0] %}
+                        {% set current_year = 2025 %}
+                        {% if birth_year %}
+                            <p><strong>Approximate Age:</strong> {{ current_year - birth_year|int }} years old</p>
+                        {% endif %}
+                        <p><strong>Member Since:</strong> {{ member.registration_date.split(' ')[0] if member.registration_date else "Unknown" }}</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div style="text-align: center; margin-top: 3rem;">
+                    <a href="{{ url_for('admin_members') }}" class="btn">
+                        <i class="fas fa-users"></i> Back to All Members
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

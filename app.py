@@ -36,6 +36,9 @@ def init_db():
                   password_hash TEXT NOT NULL,
                   first_name TEXT,
                   last_name TEXT,
+                  phone_number TEXT,
+                  sex TEXT,
+                  date_of_birth TEXT,
                   registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
 
     # Create winners table
@@ -137,6 +140,9 @@ def member_register():
         confirm_password = request.form['confirm_password']
         first_name = request.form.get('first_name', '')
         last_name = request.form.get('last_name', '')
+        phone_number = request.form.get('phone_number', '')
+        sex = request.form.get('sex', '')
+        date_of_birth = request.form.get('date_of_birth', '')
 
         # Validation
         if not username or not email or not password:
@@ -163,9 +169,9 @@ def member_register():
 
         # Create new member
         password_hash = generate_password_hash(password)
-        conn.execute('''INSERT INTO members (username, email, password_hash, first_name, last_name) 
-                       VALUES (?, ?, ?, ?, ?)''', 
-                    (username, email, password_hash, first_name, last_name))
+        conn.execute('''INSERT INTO members (username, email, password_hash, first_name, last_name, phone_number, sex, date_of_birth) 
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?)''', 
+                    (username, email, password_hash, first_name, last_name, phone_number, sex, date_of_birth))
         conn.commit()
         conn.close()
 
@@ -235,6 +241,33 @@ def admin_dashboard():
     conn.close()
 
     return render_template('admin_dashboard.html', entry_count=entry_count, recent_entries=recent_entries)
+
+@app.route('/admin/members')
+def admin_members():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+
+    conn = get_db_connection()
+    members = conn.execute('''SELECT id, username, email, first_name, last_name, phone_number, sex, date_of_birth, registration_date 
+                             FROM members ORDER BY registration_date DESC''').fetchall()
+    conn.close()
+
+    return render_template('admin_members.html', members=members)
+
+@app.route('/admin/member/<int:member_id>')
+def admin_member_detail(member_id):
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+
+    conn = get_db_connection()
+    member = conn.execute('SELECT * FROM members WHERE id = ?', (member_id,)).fetchone()
+    conn.close()
+
+    if not member:
+        flash('Member not found.', 'error')
+        return redirect(url_for('admin_members'))
+
+    return render_template('admin_member_detail.html', member=member)
 
 @app.route('/admin/pick_winner')
 def pick_winner():
