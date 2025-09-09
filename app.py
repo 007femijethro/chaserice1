@@ -102,7 +102,11 @@ def member_required(f):
 # Routes
 @app.route('/')
 def index():
-    return render_template('index.html')
+    # Fetch upcoming tours for the homepage
+    conn = get_db_connection()
+    tours = conn.execute('SELECT * FROM tours ORDER BY date ASC LIMIT 3').fetchall()
+    conn.close()
+    return render_template('index.html', tours=tours)
 
 @app.route('/bio')
 @member_required

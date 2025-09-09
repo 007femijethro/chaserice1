@@ -120,34 +120,30 @@
 <div class="section">
     <div class="container">
         <h2 class="section-title">Upcoming Events</h2>
-        <div class="grid">
-            <div class="card">
-                <div class="card-content">
-                    <h3 class="card-title">Nashville Show</h3>
-                    <p><i class="fas fa-calendar"></i> January 15, 2024</p>
-                    <p><i class="fas fa-map-marker-alt"></i> Ryman Auditorium, Nashville TN</p>
-                    <a href="#" class="btn">Get Tickets</a>
+        {% if tours %}
+            <div class="grid">
+                {% for tour in tours %}
+                <div class="card">
+                    <div class="card-content">
+                        <h3 class="card-title">{{ tour.venue }}</h3>
+                        <p><i class="fas fa-calendar"></i> {{ tour.date }}</p>
+                        <p><i class="fas fa-map-marker-alt"></i> {{ tour.venue }}, {{ tour.city }}, {{ tour.state_or_country }}</p>
+                        {% if tour.ticket_url %}
+                            <a href="{{ tour.ticket_url }}" target="_blank" class="btn">Get Tickets</a>
+                        {% else %}
+                            <a href="https://www.chaserice.com/pages/tour" target="_blank" class="btn">Get Tickets</a>
+                        {% endif %}
+                    </div>
                 </div>
+                {% endfor %}
             </div>
-            
-            <div class="card">
-                <div class="card-content">
-                    <h3 class="card-title">Austin Concert</h3>
-                    <p><i class="fas fa-calendar"></i> January 20, 2024</p>
-                    <p><i class="fas fa-map-marker-alt"></i> Moody Center, Austin TX</p>
-                    <a href="#" class="btn">Get Tickets</a>
-                </div>
+        {% else %}
+            <div style="text-align: center; padding: 3rem;">
+                <i class="fas fa-calendar-alt" style="font-size: 3rem; color: var(--text-light); margin-bottom: 1rem;"></i>
+                <p style="color: var(--text); margin-bottom: 1rem;">No tour dates scheduled yet.</p>
+                <p style="color: var(--text-light);">Check back soon for upcoming shows!</p>
             </div>
-            
-            <div class="card">
-                <div class="card-content">
-                    <h3 class="card-title">Denver Performance</h3>
-                    <p><i class="fas fa-calendar"></i> January 27, 2024</p>
-                    <p><i class="fas fa-map-marker-alt"></i> Red Rocks Amphitheatre, Denver CO</p>
-                    <a href="#" class="btn">Get Tickets</a>
-                </div>
-            </div>
-        </div>
+        {% endif %}
     </div>
 </div>
 
