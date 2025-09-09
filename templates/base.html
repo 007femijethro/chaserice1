@@ -623,11 +623,19 @@
             <nav>
                 <ul>
                     <li><a href="{{ url_for('index') }}" class="{% if request.path == '/' %}active{% endif %}">Home</a></li>
-                    <li><a href="{{ url_for('bio') }}" class="{% if request.path == '/bio' %}active{% endif %}">Bio</a></li>
-                    <li><a href="https://temple.groover.co/chase-rice" target="_blank" class="{% if request.path == '/music' %}active{% endif %}">Music</a></li>
-                    <li><a href="https://www.chaserice.com/pages/tour" class="{% if request.path == '/tour' %}active{% endif %}">Tour</a></li>
-                    <li><a href="{{ url_for('raffle') }}" class="{% if request.path == '/raffle' %}active{% endif %}">Raffle</a></li>
-                    <li><a href="{{ url_for('winners') }}" class="{% if request.path == '/winners' %}active{% endif %}">Winners</a></li>
+                    {% if session.member_logged_in %}
+                        <li><a href="{{ url_for('bio') }}" class="{% if request.path == '/bio' %}active{% endif %}">Bio</a></li>
+                        <li><a href="{{ url_for('music') }}" class="{% if request.path == '/music' %}active{% endif %}">Music</a></li>
+                        <li><a href="{{ url_for('tour') }}" class="{% if request.path == '/tour' %}active{% endif %}">Tour</a></li>
+                        <li><a href="{{ url_for('raffle') }}" class="{% if request.path == '/raffle' %}active{% endif %}">Raffle</a></li>
+                        <li><a href="{{ url_for('winners') }}" class="{% if request.path == '/winners' %}active{% endif %}">Winners</a></li>
+                        <li><a href="{{ url_for('member_logout') }}" style="color: var(--accent);">
+                            <i class="fas fa-sign-out-alt"></i> Logout ({{ session.member_username }})
+                        </a></li>
+                    {% else %}
+                        <li><a href="{{ url_for('member_login') }}" class="{% if request.path == '/login' %}active{% endif %}">Login</a></li>
+                        <li><a href="{{ url_for('member_register') }}" class="{% if request.path == '/register' %}active{% endif %}">Register</a></li>
+                    {% endif %}
                 </ul>
             </nav>
         </div>

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="section">
+    <div class="container">
+        <div style="max-width: 500px; margin: 0 auto;">
+            <h2 class="section-title">Join the Chase Rice Fan Club</h2>
+            
+            <div class="card">
+                <div class="card-content">
+                    <form method="POST">
+                        <div class="form-group">
+                            <label for="first_name">First Name:</label>
+                            <input type="text" id="first_name" name="first_name" class="form-control" placeholder="Enter your first name">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="last_name">Last Name:</label>
+                            <input type="text" id="last_name" name="last_name" class="form-control" placeholder="Enter your last name">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="username">Username: <span style="color: var(--secondary);">*</span></label>
+                            <input type="text" id="username" name="username" class="form-control" placeholder="Choose a username" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="email">Email: <span style="color: var(--secondary);">*</span></label>
+                            <input type="email" id="email" name="email" class="form-control" placeholder="Enter your email" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="password">Password: <span style="color: var(--secondary);">*</span></label>
+                            <input type="password" id="password" name="password" class="form-control" placeholder="Create a password (6+ characters)" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="confirm_password">Confirm Password: <span style="color: var(--secondary);">*</span></label>
+                            <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="Confirm your password" required>
+                        </div>
+                        
+                        <button type="submit" class="btn" style="width: 100%; margin-bottom: 1rem;">
+                            <i class="fas fa-user-plus"></i> Create Account
+                        </button>
+                        
+                        <div style="text-align: center; color: var(--text);">
+                            Already have an account? <a href="{{ url_for('member_login') }}" style="color: var(--accent); text-decoration: none; font-weight: 600;">Log In</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 2rem; color: var(--text); font-size: 0.9rem;">
+                <p><i class="fas fa-star" style="color: var(--accent);"></i> Get exclusive access to Bio, Music, Tour info, Raffles, and Winners!</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

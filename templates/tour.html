@@ -1,0 +1,68 @@
+<!-- templates/tour.html -->
+{% extends "base.html" %}
+
+{% block title %}Tour Dates - Chase Rice Fanpage{% endblock %}
+
+{% block content %}
+<div class="section">
+    <div class="container">
+        <h2 class="section-title">Tour Dates</h2>
+
+        <div class="card">
+            <div class="card-content">
+                <h3 class="card-title">Upcoming Shows</h3>
+                
+                <div class="grid" style="grid-template-columns: 1fr; gap: 1rem;">
+                    <div style="padding: 1rem; border-left: 4px solid var(--accent); background: rgba(253, 187, 45, 0.05); border-radius: 0 8px 8px 0;">
+                        <h4 style="color: var(--primary); margin-bottom: 0.5rem;">Nashville Show</h4>
+                        <p><i class="fas fa-calendar" style="color: var(--accent);"></i> January 15, 2024</p>
+                        <p><i class="fas fa-map-marker-alt" style="color: var(--accent);"></i> Ryman Auditorium, Nashville TN</p>
+                        <a href="https://www.chaserice.com/pages/tour" target="_blank" class="btn btn-outline">Get Tickets</a>
+                    </div>
+                    
+                    <div style="padding: 1rem; border-left: 4px solid var(--accent); background: rgba(253, 187, 45, 0.05); border-radius: 0 8px 8px 0;">
+                        <h4 style="color: var(--primary); margin-bottom: 0.5rem;">Austin Concert</h4>
+                        <p><i class="fas fa-calendar" style="color: var(--accent);"></i> January 20, 2024</p>
+                        <p><i class="fas fa-map-marker-alt" style="color: var(--accent);"></i> Moody Center, Austin TX</p>
+                        <a href="https://www.chaserice.com/pages/tour" target="_blank" class="btn btn-outline">Get Tickets</a>
+                    </div>
+                    
+                    <div style="padding: 1rem; border-left: 4px solid var(--accent); background: rgba(253, 187, 45, 0.05); border-radius: 0 8px 8px 0;">
+                        <h4 style="color: var(--primary); margin-bottom: 0.5rem;">Denver Performance</h4>
+                        <p><i class="fas fa-calendar" style="color: var(--accent);"></i> January 27, 2024</p>
+                        <p><i class="fas fa-map-marker-alt" style="color: var(--accent);"></i> Red Rocks Amphitheatre, Denver CO</p>
+                        <a href="https://www.chaserice.com/pages/tour" target="_blank" class="btn btn-outline">Get Tickets</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-content">
+                <h3 class="card-title">Tour Information</h3>
+                <p>Welcome to Chase Rice's official tour page! Here you can find all the latest information about upcoming concerts, tour dates, and special events.</p>
+                
+                <div style="margin-top: 2rem; text-align: center;">
+                    <h4 style="color: var(--primary);">Want More Tour Updates?</h4>
+                    <p>For the most up-to-date tour information, ticket availability, and VIP packages, visit Chase Rice's official website.</p>
+                    <a href="https://www.chaserice.com/pages/tour" target="_blank" class="btn">
+                        <i class="fas fa-external-link-alt"></i> Visit Official Tour Page
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-content">
+                <h3 class="card-title">Past Tours</h3>
+                <ul>
+                    <li><strong>I Hate Cowboys Tour</strong> (2023) - 40+ cities across the US</li>
+                    <li><strong>The Album Tour</strong> (2021-2022) - Major venues nationwide</li>
+                    <li><strong>The Worldwide Beautiful Tour</strong> (2020) - Select dates due to COVID</li>
+                    <li><strong>Lambs & Lions Tour</strong> (2017-2018) - International tour</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
