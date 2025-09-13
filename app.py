@@ -514,6 +514,25 @@ def admin_logout():
     flash('You have been logged out.', 'info')
     return redirect(url_for('admin_login'))
 
+@app.route('/api/increment_counter', methods=['POST'])
+def increment_counter():
+    """API endpoint to increment the member counter"""
+    conn = get_db_connection()
+    
+    # Get current count
+    counter_row = conn.execute('SELECT current_count FROM member_counter ORDER BY id DESC LIMIT 1').fetchone()
+    current_count = counter_row[0] if counter_row else 1247
+    
+    # Increment by 1
+    new_count = current_count + 1
+    
+    # Update in database
+    conn.execute('UPDATE member_counter SET current_count = ?, last_updated = CURRENT_TIMESTAMP WHERE id = (SELECT id FROM member_counter ORDER BY id DESC LIMIT 1)', (new_count,))
+    conn.commit()
+    conn.close()
+    
+    return {'success': True, 'new_count': new_count}
+
 if __name__ == '__main__':
     init_db()
 
