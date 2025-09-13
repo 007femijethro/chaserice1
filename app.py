@@ -533,6 +533,46 @@ def increment_counter():
     
     return {'success': True, 'new_count': new_count}
 
+@app.route('/admin/counter')
+def admin_counter():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+
+    conn = get_db_connection()
+    counter_row = conn.execute('SELECT current_count, last_updated FROM member_counter ORDER BY id DESC LIMIT 1').fetchone()
+    conn.close()
+    
+    current_count = counter_row[0] if counter_row else 1247
+    last_updated = counter_row[1] if counter_row else 'Never'
+
+    return render_template('admin_counter.html', current_count=current_count, last_updated=last_updated)
+
+@app.route('/admin/counter/update', methods=['POST'])
+def admin_update_counter():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+
+    new_count = request.form.get('new_count')
+    
+    # Validation
+    if not new_count or not new_count.isdigit():
+        flash('Please enter a valid number.', 'error')
+        return redirect(url_for('admin_counter'))
+    
+    new_count = int(new_count)
+    if new_count < 0:
+        flash('Counter value cannot be negative.', 'error')
+        return redirect(url_for('admin_counter'))
+
+    # Update counter in database
+    conn = get_db_connection()
+    conn.execute('UPDATE member_counter SET current_count = ?, last_updated = CURRENT_TIMESTAMP WHERE id = (SELECT id FROM member_counter ORDER BY id DESC LIMIT 1)', (new_count,))
+    conn.commit()
+    conn.close()
+
+    flash(f'Member counter updated to {new_count:,}!', 'success')
+    return redirect(url_for('admin_counter'))
+
 if __name__ == '__main__':
     init_db()
 
