@@ -76,7 +76,11 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><circle cx=\"25\" cy=\"25\" r=\"1\" fill=\"%23ffffff\" opacity=\"0.1\"><animate attributeName=\"opacity\" values=\"0.1;0.3;0.1\" dur=\"3s\" repeatCount=\"indefinite\"/></circle><circle cx=\"75\" cy=\"75\" r=\"1\" fill=\"%23ffffff\" opacity=\"0.1\"><animate attributeName=\"opacity\" values=\"0.1;0.3;0.1\" dur=\"4s\" repeatCount=\"indefinite\"/></circle></svg>') repeat;
+            background: rgba(255, 255, 255, 0.02);
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+                radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px, 60px 60px;
             animation: float 20s infinite linear;
         "></div>
         
