@@ -73,6 +73,26 @@ def init_db():
                   state_or_country TEXT NOT NULL,
                   ticket_url TEXT,
                   created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
+    
+    # Create unique index for idempotent tour updates
+    c.execute('''CREATE UNIQUE INDEX IF NOT EXISTS uniq_tour 
+                 ON tours(date, venue, city, state_or_country)''')
+    
+    # Insert current GO DOWN SINGIN' INTERNATIONAL TOUR 2025 dates (truly idempotent)
+    current_tours = [
+        ('2025-09-25', 'Vina Robles Amphitheatre', 'Paso Robles', 'CA', 'https://www.ticketmaster.com/chase-rice-tickets/artist/1580113'),
+        ('2025-09-26', 'House of Blues Anaheim', 'Anaheim', 'CA', 'https://www.ticketmaster.com/chase-rice-tickets/artist/1580113'),
+        ('2025-09-27', 'The Fruit Yard Amphitheater', 'Modesto', 'CA', 'https://www.ticketmaster.com/chase-rice-tickets/artist/1580113'),
+        ('2025-10-02', 'Hampton Beach Casino Ballroom', 'Hampton Beach', 'NH', 'https://www.ticketmaster.com/chase-rice-tickets/artist/1580113'),
+        ('2025-10-04', 'Toads Place', 'New Haven', 'CT', 'https://www.ticketmaster.com/chase-rice-tickets/artist/1580113'),
+        ('2025-10-16', 'The Jones Assembly', 'Oklahoma City', 'OK', 'https://www.ticketmaster.com/chase-rice-tickets/artist/1580113'),
+        ('2025-10-17', 'Golden Nugget', 'Lake Charles', 'LA', 'https://www.ticketmaster.com/chase-rice-tickets/artist/1580113')
+    ]
+    
+    # Ensure current 2025 tour dates are present (truly idempotent with unique constraint)
+    for date, venue, city, state, url in current_tours:
+        c.execute('''INSERT OR REPLACE INTO tours (date, venue, city, state_or_country, ticket_url) 
+                    VALUES (?, ?, ?, ?, ?)''', (date, venue, city, state, url))
 
     # Create member counter table
     c.execute('''CREATE TABLE IF NOT EXISTS member_counter
