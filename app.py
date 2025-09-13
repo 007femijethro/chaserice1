@@ -74,6 +74,17 @@ def init_db():
                   ticket_url TEXT,
                   created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
 
+    # Create member counter table
+    c.execute('''CREATE TABLE IF NOT EXISTS member_counter
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  current_count INTEGER NOT NULL DEFAULT 1247,
+                  last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
+    
+    # Insert default member counter if not exists
+    c.execute("SELECT COUNT(*) FROM member_counter")
+    if c.fetchone()[0] == 0:
+        c.execute("INSERT INTO member_counter (current_count) VALUES (1247)")
+
     # Insert default admin user if not exists
     password_hash = generate_password_hash('admin123')
     try:
