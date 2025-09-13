@@ -517,6 +517,10 @@ def admin_logout():
 @app.route('/api/increment_counter', methods=['POST'])
 def increment_counter():
     """API endpoint to increment the member counter"""
+    # Basic security check - only allow if not logged in as member
+    if session.get('member_logged_in'):
+        return {'success': False, 'error': 'Not allowed for logged-in members'}, 403
+    
     conn = get_db_connection()
     
     # Get current count

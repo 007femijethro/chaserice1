@@ -1,0 +1,120 @@
+<!-- templates/admin_counter.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="section">
+    <div class="container">
+        <h2 class="section-title">Member Counter Management</h2>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+        
+        <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 2rem;">
+            <!-- Current Counter Display -->
+            <div class="card">
+                <div class="card-content">
+                    <h3 class="card-title">Current Counter Status</h3>
+                    
+                    <div style="text-align: center; margin: 2rem 0;">
+                        <div style="
+                            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+                            color: white;
+                            padding: 2rem;
+                            border-radius: 12px;
+                            margin-bottom: 1rem;
+                        ">
+                            <div style="font-size: 3rem; font-weight: bold; margin-bottom: 0.5rem;">
+                                {{ "{:,}".format(current_count) }}
+                            </div>
+                            <div style="font-size: 1.1rem; opacity: 0.9;">
+                                <i class="fas fa-users"></i> Current Members
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: rgba(var(--primary-rgb), 0.1); padding: 1rem; border-radius: 8px;">
+                        <p style="margin: 0; font-size: 0.9rem; color: var(--text-light);">
+                            <i class="fas fa-clock"></i> Last Updated: {{ last_updated }}
+                        </p>
+                        <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; color: var(--text-light);">
+                            <i class="fas fa-chart-line"></i> Auto-incrementing every minute for non-logged-in users
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Update Counter Form -->
+            <div class="card">
+                <div class="card-content">
+                    <h3 class="card-title">Update Counter</h3>
+                    <p style="color: var(--text-light); margin-bottom: 1.5rem;">
+                        Set a new base value for the member counter. The counter will continue auto-incrementing from this new value.
+                    </p>
+                    
+                    <form method="POST" action="{{ url_for('admin_update_counter') }}">
+                        <div style="margin-bottom: 1.5rem;">
+                            <label for="new_count" style="display: block; margin-bottom: 0.5rem; font-weight: bold; color: var(--text);">
+                                New Counter Value
+                            </label>
+                            <input type="number" 
+                                   id="new_count" 
+                                   name="new_count" 
+                                   value="{{ current_count }}"
+                                   min="0"
+                                   step="1"
+                                   required
+                                   style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;">
+                        </div>
+                        
+                        <div style="background: rgba(255, 193, 7, 0.1); border-left: 4px solid #ffc107; padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px;">
+                            <p style="margin: 0; font-size: 0.9rem; color: var(--text);">
+                                <i class="fas fa-exclamation-triangle" style="color: #ffc107;"></i>
+                                <strong>Note:</strong> This will immediately update the counter value shown to visitors. The auto-increment will continue from the new value.
+                            </p>
+                        </div>
+                        
+                        <button type="submit" class="btn" style="width: 100%; background: var(--primary); color: white; padding: 0.75rem;">
+                            <i class="fas fa-save"></i> Update Counter
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- How It Works -->
+        <div class="card" style="margin-top: 2rem;">
+            <div class="card-content">
+                <h3 class="card-title">How the Member Counter Works</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
+                    <div style="text-align: center; padding: 1rem;">
+                        <i class="fas fa-eye-slash" style="font-size: 2rem; color: var(--primary); margin-bottom: 0.5rem;"></i>
+                        <h4 style="margin: 0.5rem 0; color: var(--text);">For Non-Logged-In Users</h4>
+                        <p style="color: var(--text-light); font-size: 0.9rem;">Shows the dynamic counter instead of photo slideshow to encourage sign-ups</p>
+                    </div>
+                    <div style="text-align: center; padding: 1rem;">
+                        <i class="fas fa-user-check" style="font-size: 2rem; color: var(--accent); margin-bottom: 0.5rem;"></i>
+                        <h4 style="margin: 0.5rem 0; color: var(--text);">For Logged-In Members</h4>
+                        <p style="color: var(--text-light); font-size: 0.9rem;">Shows the personalized photo slideshow with member content</p>
+                    </div>
+                    <div style="text-align: center; padding: 1rem;">
+                        <i class="fas fa-clock" style="font-size: 2rem; color: var(--secondary); margin-bottom: 0.5rem;"></i>
+                        <h4 style="margin: 0.5rem 0; color: var(--text);">Auto-Increment</h4>
+                        <p style="color: var(--text-light); font-size: 0.9rem;">Increases by 1 every minute to show growing community</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="{{ url_for('admin_dashboard') }}" class="btn" style="background: var(--text-light); color: white; padding: 0.75rem 1.5rem;">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

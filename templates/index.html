@@ -3,13 +3,13 @@
 
 {% block content %}
 <!-- Conditional Hero Section -->
-{% if session.user_id %}
+{% if session.member_logged_in %}
     <!-- Hero Slideshow Section for Logged-in Members -->
     <section class="hero-slideshow">
         <!-- Slide 1 -->
         <div class="slide active" style="background-image: url('https://www.chaserice.com/cdn/shop/files/eldorabanner.jpg?v=1754668094&width=2000');">
             <div class="slide-content">
-                <h1>Welcome Back, {{ session.username }}!</h1>
+                <h1>Welcome Back, {{ session.member_username }}!</h1>
                 <p>Experience the music, feel the energy</p>
                 <a href="https://temple.groover.co/chase-rice" target="_blank" class="btn">Listen Now</a>
             </div>
