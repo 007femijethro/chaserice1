@@ -146,8 +146,13 @@ def index():
     # Fetch upcoming tours for the homepage
     conn = get_db_connection()
     tours = conn.execute('SELECT * FROM tours ORDER BY date ASC LIMIT 3').fetchall()
+    
+    # Fetch current member counter
+    counter_row = conn.execute('SELECT current_count FROM member_counter ORDER BY id DESC LIMIT 1').fetchone()
+    member_count = counter_row[0] if counter_row else 1247
+    
     conn.close()
-    return render_template('index.html', tours=tours)
+    return render_template('index.html', tours=tours, member_count=member_count)
 
 @app.route('/bio')
 @member_required
