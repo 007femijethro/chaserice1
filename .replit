@@ -13,10 +13,6 @@ FLASK_ENV = "development"
 localPort = 5000
 externalPort = 80
 
-[[ports]]
-localPort = 44609
-externalPort = 3000
-
 [agent]
 expertMode = true
 
