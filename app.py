@@ -1,4 +1,3 @@
-# app.py
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 import sqlite3
 import os
@@ -8,9 +7,284 @@ import time
 import requests
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+import smtplib
+from email.message import EmailMessage
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or 'chase-rice-fanpage-secret-2023'
+
+# --- Email configuration ---
+EMAIL_SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.gmail.com")
+EMAIL_SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
+EMAIL_USERNAME  = os.environ.get("SMTP_USER", "")
+EMAIL_PASSWORD  = os.environ.get("SMTP_PASS", "")
+EMAIL_FROM      = os.environ.get("FROM_EMAIL", EMAIL_USERNAME or "no-reply@example.com")
+EMAIL_FROM_NAME = os.environ.get("FROM_NAME", "Chase Rice Fan Club")
+ADMIN_EMAIL     = os.environ.get("ADMIN_EMAIL", "")
+EMAIL_USE_SSL   = os.environ.get("SMTP_SSL", "false").lower() == "true"
+
+def send_email(subject: str, to_addrs: list[str], html_body: str, text_body: str | None = None):
+    if not to_addrs:
+        return
+    try:
+        msg = EmailMessage()
+        msg["Subject"] = subject
+        msg["From"] = f"{EMAIL_FROM_NAME} <{EMAIL_FROM}>"
+        msg["To"] = ", ".join(to_addrs)
+        if text_body:
+            msg.set_content(text_body)
+            msg.add_alternative(html_body, subtype="html")
+        else:
+            msg.set_content(html_body, subtype="html")
+
+        if EMAIL_USE_SSL:
+            with smtplib.SMTP_SSL(EMAIL_SMTP_HOST, EMAIL_SMTP_PORT) as smtp:
+                if EMAIL_USERNAME and EMAIL_PASSWORD:
+                    smtp.login(EMAIL_USERNAME, EMAIL_PASSWORD)
+                smtp.send_message(msg)
+        except Exception as e:
+            print(f"[EMAIL ERROR] SSL connection failed: {e}")
+            # Fallback to regular SMTP
+            with smtplib.SMTP(EMAIL_SMTP_HOST, EMAIL_SMTP_PORT) as smtp:
+                try:
+                    smtp.starttls()
+                except smtplib.SMTPException:
+                    pass
+                if EMAIL_USERNAME and EMAIL_PASSWORD:
+                    smtp.login(EMAIL_USERNAME, EMAIL_PASSWORD)
+                smtp.send_message(msg)
+        else:
+            with smtplib.SMTP(EMAIL_SMTP_HOST, EMAIL_SMTP_PORT) as smtp:
+                try:
+                    smtp.starttls()
+                except smtplib.SMTPException:
+                    pass
+                if EMAIL_USERNAME and EMAIL_PASSWORD:
+                    smtp.login(EMAIL_USERNAME, EMAIL_PASSWORD)
+                smtp.send_message(msg)
+        print(f"[EMAIL SENT] To: {to_addrs}, Subject: {subject}")
+    except Exception as e:
+        print(f"[EMAIL ERROR] {e}")
+
+def send_welcome_email(member_data):
+    """Send welcome email to new members"""
+    subject = "Welcome to the Chase Rice Fan Club!"
+
+    html_body = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <style>
+            body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+            .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+            .content {{ background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }}
+            .welcome {{ font-size: 24px; color: #764ba2; margin-bottom: 20px; }}
+            .button {{ display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }}
+            .footer {{ text-align: center; margin-top: 30px; color: #666; font-size: 14px; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🎵 Chase Rice Fan Club 🎵</h1>
+            </div>
+            <div class="content">
+                <div class="welcome">Welcome aboard, {member_data['first_name'] or member_data['username']}!</div>
+
+                <p>We're thrilled to have you join our community of Chase Rice fans! Here's what you can look forward to:</p>
+
+                <ul>
+                    <li>🎤 Exclusive tour updates and early ticket access</li>
+                    <li>🎵 Behind-the-scenes content and music previews</li>
+                    <li>🎟️ Member-only raffles and giveaways</li>
+                    <li>👥 Connect with other fans in our community</li>
+                    <li>📰 Curated Chase Rice news and updates</li>
+                </ul>
+
+                <p>Your account has been successfully created with the following details:</p>
+                <p><strong>Username:</strong> {member_data['username']}<br>
+                <strong>Email:</strong> {member_data['email']}<br>
+                <strong>Member Since:</strong> {datetime.now().strftime('%B %d, %Y')}</p>
+
+                <a href="{url_for('index', _external=True)}" class="button">Visit Fan Club</a>
+
+                <p>If you have any questions or need assistance, don't hesitate to reach out to us.</p>
+
+                <div class="footer">
+                    <p>Keep the music playing!<br>
+                    <strong>The Chase Rice Fan Club Team</strong></p>
+                    <p><small>This is an automated message, please do not reply directly to this email.</small></p>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+    text_body = f"""
+    Welcome to the Chase Rice Fan Club, {member_data['first_name'] or member_data['username']}!
+
+    We're thrilled to have you join our community of Chase Rice fans! 
+
+    Your account details:
+    Username: {member_data['username']}
+    Email: {member_data['email']}
+    Member Since: {datetime.now().strftime('%B %d, %Y')}
+
+    What you'll get as a member:
+    - Exclusive tour updates and early ticket access
+    - Behind-the-scenes content and music previews
+    - Member-only raffles and giveaways
+    - Connect with other fans
+    - Curated Chase Rice news
+
+    Visit the fan club: {url_for('index', _external=True)}
+
+    Keep the music playing!
+    The Chase Rice Fan Club Team
+
+    This is an automated message, please do not reply directly to this email.
+    """
+
+    send_email(subject, [member_data['email']], html_body, text_body)
+
+def send_admin_notification(subject, member_data, action_type="registration"):
+    """Send notification email to admin"""
+    if not ADMIN_EMAIL:
+        return
+
+    action_text = {
+        "registration": "registered",
+        "login": "signed in"
+    }.get(action_type, action_type)
+
+    timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+
+    html_body = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <style>
+            body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+            .header {{ background: #dc3545; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; }}
+            .content {{ background: #f8f9fa; padding: 25px; border-radius: 0 0 10px 10px; }}
+            .alert {{ background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin: 15px 0; }}
+            .info-table {{ width: 100%; border-collapse: collapse; margin: 15px 0; }}
+            .info-table th, .info-table td {{ padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }}
+            .info-table th {{ background: #e9ecef; width: 30%; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h2>🔔 Fan Club Admin Notification</h2>
+            </div>
+            <div class="content">
+                <div class="alert">
+                    <strong>Action:</strong> Member {action_text}<br>
+                    <strong>Time:</strong> {timestamp}
+                </div>
+
+                <h3>Member Details:</h3>
+                <table class="info-table">
+                    <tr><th>Username:</th><td>{member_data['username']}</td></tr>
+                    <tr><th>Email:</th><td>{member_data['email']}</td></tr>
+                    <tr><th>Full Name:</th><td>{member_data.get('first_name', '')} {member_data.get('last_name', '')}</td></tr>
+                    <tr><th>Phone:</th><td>{member_data.get('phone_number', 'Not provided')}</td></tr>
+                    <tr><th>Sex:</th><td>{member_data.get('sex', 'Not specified')}</td></tr>
+                    <tr><th>Date of Birth:</th><td>{member_data.get('date_of_birth', 'Not provided')}</td></tr>
+                    <tr><th>Newsletter:</th><td>{'Subscribed' if member_data.get('newsletter_subscription') else 'Not subscribed'}</td></tr>
+                </table>
+
+                {f"<h3>Message to Chase:</h3><p>{member_data.get('message_to_chase', 'None')}</p>" if member_data.get('message_to_chase') else ""}
+
+                <p><a href="{url_for('admin_member_detail', member_id=member_data['id'], _external=True)}">View member details in admin panel</a></p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+    text_body = f"""
+    FAN CLUB ADMIN NOTIFICATION
+    ===========================
+
+    Action: Member {action_text}
+    Time: {timestamp}
+
+    Member Details:
+    ---------------
+    Username: {member_data['username']}
+    Email: {member_data['email']}
+    Full Name: {member_data.get('first_name', '')} {member_data.get('last_name', '')}
+    Phone: {member_data.get('phone_number', 'Not provided')}
+    Sex: {member_data.get('sex', 'Not specified')}
+    Date of Birth: {member_data.get('date_of_birth', 'Not provided')}
+    Newsletter: {'Subscribed' if member_data.get('newsletter_subscription') else 'Not subscribed'}
+
+    {f"Message to Chase: {member_data.get('message_to_chase', 'None')}" if member_data.get('message_to_chase') else ""}
+
+    View member details: {url_for('admin_member_detail', member_id=member_data['id'], _external=True)}
+    """
+
+    send_email(subject, [ADMIN_EMAIL], html_body, text_body)
+
+def send_raffle_confirmation(entry_data):
+    """Send raffle entry confirmation email"""
+    subject = "You're in! Chase Rice Raffle Entry Confirmed"
+
+    html_body = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <style>
+            body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+            .header {{ background: linear-gradient(135deg, #28a745, #20c997); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+            .content {{ background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }}
+            .confirmation {{ font-size: 24px; color: #28a745; margin-bottom: 20px; }}
+            .entry-details {{ background: white; padding: 20px; border-radius: 5px; margin: 20px 0; }}
+            .footer {{ text-align: center; margin-top: 30px; color: #666; font-size: 14px; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🎟️ Chase Rice Raffle Entry 🎟️</h1>
+            </div>
+            <div class="content">
+                <div class="confirmation">You're officially entered!</div>
+
+                <p>Hello {entry_data['name']},</p>
+                <p>Your entry into the Chase Rice raffle has been confirmed. Good luck!</p>
+
+                <div class="entry-details">
+                    <h3>Your Entry Details:</h3>
+                    <p><strong>Name:</strong> {entry_data['name']}<br>
+                    <strong>Email:</strong> {entry_data['email']}<br>
+                    <strong>Favorite Song:</strong> {entry_data.get('favorite_song', 'Not specified')}<br>
+                    <strong>Entry Date:</strong> {datetime.now().strftime('%B %d, %Y at %H:%M')}</p>
+                </div>
+
+                <p>We'll notify you if you win! Winners are typically announced within 7-10 days after the raffle closes.</p>
+
+                <div class="footer">
+                    <p>Best of luck!<br>
+                    <strong>Chase Rice Fan Club</strong></p>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+    send_email(subject, [entry_data['email']], html_body)
+# --- End email configuration ---
 
 # Database initialization
 def init_db():
@@ -73,11 +347,11 @@ def init_db():
                   state_or_country TEXT NOT NULL,
                   ticket_url TEXT,
                   created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
-    
+
     # Create unique index for idempotent tour updates
     c.execute('''CREATE UNIQUE INDEX IF NOT EXISTS uniq_tour 
                  ON tours(date, venue, city, state_or_country)''')
-    
+
     # Insert current GO DOWN SINGIN' INTERNATIONAL TOUR 2025 dates (truly idempotent)
     current_tours = [
         ('2025-09-25', 'Vina Robles Amphitheatre', 'Paso Robles', 'CA', 'https://www.ticketmaster.com/chase-rice-tickets/artist/1580113'),
@@ -88,7 +362,7 @@ def init_db():
         ('2025-10-16', 'The Jones Assembly', 'Oklahoma City', 'OK', 'https://www.ticketmaster.com/chase-rice-tickets/artist/1580113'),
         ('2025-10-17', 'Golden Nugget', 'Lake Charles', 'LA', 'https://www.ticketmaster.com/chase-rice-tickets/artist/1580113')
     ]
-    
+
     # Ensure current 2025 tour dates are present (truly idempotent with unique constraint)
     for date, venue, city, state, url in current_tours:
         c.execute('''INSERT OR REPLACE INTO tours (date, venue, city, state_or_country, ticket_url) 
@@ -99,7 +373,7 @@ def init_db():
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
                   current_count INTEGER NOT NULL DEFAULT 1247,
                   last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
-    
+
     # Insert default member counter if not exists
     c.execute("SELECT COUNT(*) FROM member_counter")
     if c.fetchone()[0] == 0:
@@ -166,11 +440,11 @@ def index():
     # Fetch upcoming tours for the homepage
     conn = get_db_connection()
     tours = conn.execute('SELECT * FROM tours ORDER BY date ASC LIMIT 3').fetchall()
-    
+
     # Fetch current member counter
     counter_row = conn.execute('SELECT current_count FROM member_counter ORDER BY id DESC LIMIT 1').fetchone()
     member_count = counter_row[0] if counter_row else 1247
-    
+
     conn.close()
     return render_template('index.html', tours=tours, member_count=member_count)
 
@@ -192,28 +466,6 @@ def tour():
     conn.close()
     return render_template('tour.html', tours=tours)
 
-@app.route('/raffle', methods=['GET', 'POST'])
-@member_required
-def raffle():
-    if request.method == 'POST':
-        name = request.form['name']
-        email = request.form['email']
-        favorite_song = request.form.get('favorite_song', '')
-
-        if not name or not email:
-            flash('Please fill in all required fields.', 'error')
-            return redirect(url_for('raffle'))
-
-        conn = get_db_connection()
-        conn.execute('INSERT INTO raffle_entries (name, email, favorite_song) VALUES (?, ?, ?)',
-                    (name, email, favorite_song))
-        conn.commit()
-        conn.close()
-
-        flash('Thanks for entering the raffle! Good luck!', 'success')
-        return redirect(url_for('raffle'))
-
-    return render_template('raffle.html')
 
 @app.route('/winners')
 @member_required
@@ -227,7 +479,7 @@ def winners():
     return render_template('winners.html', winners=winners)
 
 # Member authentication routes
-@app.route('/register', methods=['GET', 'POST'])
+('/register', methods=['GET', 'POST'])
 def member_register():
     if request.method == 'POST':
         username = request.form['username']
@@ -267,11 +519,33 @@ def member_register():
 
         # Create new member
         password_hash = generate_password_hash(password)
-        conn.execute('''INSERT INTO members (username, email, password_hash, first_name, last_name, phone_number, sex, date_of_birth, message_to_chase, newsletter_subscription) 
+        cursor = conn.cursor()
+        cursor.execute('''INSERT INTO members (username, email, password_hash, first_name, last_name, phone_number, sex, date_of_birth, message_to_chase, newsletter_subscription) 
                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', 
                     (username, email, password_hash, first_name, last_name, phone_number, sex, date_of_birth, message_to_chase, newsletter_subscription))
+        member_id = cursor.lastrowid
         conn.commit()
+
+        # Get the newly created member data
+        new_member = conn.execute('SELECT * FROM members WHERE id = ?', (member_id,)).fetchone()
         conn.close()
+
+        # Send welcome email to new member
+        try:
+            member_data = dict(new_member)
+            send_welcome_email(member_data)
+        except Exception as e:
+            print(f"[EMAIL ERROR] Welcome email failed: {e}")
+
+        # Send admin notification
+        try:
+            send_admin_notification(
+                f"New Member Registration: {username}",
+                member_data,
+                "registration"
+            )
+        except Exception as e:
+            print(f"[EMAIL ERROR] Admin notification failed: {e}")
 
         flash('Registration successful! You can now log in.', 'success')
         return redirect(url_for('member_login'))
@@ -293,12 +567,59 @@ def member_login():
             session['member_logged_in'] = True
             session['member_id'] = user['id']
             session['member_username'] = user['username']
+
+            # Send sign-in notification to admin
+            try:
+                member_data = dict(user)
+                send_admin_notification(
+                    f"Member Sign In: {user['username']}",
+                    member_data,
+                    "login"
+                )
+            except Exception as e:
+                print(f"[EMAIL ERROR] Sign-in notification failed: {e}")
+
             flash(f'Welcome back, {user["first_name"] or user["username"]}!', 'success')
-            return redirect(url_for('bio'))  # Redirect to Bio page after login
+            return redirect(url_for('bio'))
         else:
             flash('Invalid username/email or password.', 'error')
 
     return render_template('member_login.html')
+
+@app.route('/raffle', methods=['GET', 'POST'])
+@member_required
+def raffle():
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        favorite_song = request.form.get('favorite_song', '')
+
+        if not name or not email:
+            flash('Please fill in all required fields.', 'error')
+            return redirect(url_for('raffle'))
+
+        conn = get_db_connection()
+        conn.execute('INSERT INTO raffle_entries (name, email, favorite_song) VALUES (?, ?, ?)',
+                    (name, email, favorite_song))
+        conn.commit()
+        conn.close()
+
+        # Send raffle confirmation email
+        try:
+            entry_data = {
+                'name': name,
+                'email': email,
+                'favorite_song': favorite_song
+            }
+            send_raffle_confirmation(entry_data)
+        except Exception as e:
+            print(f"[EMAIL ERROR] Raffle confirmation failed: {e}")
+
+        flash('Thanks for entering the raffle! Good luck!', 'success')
+        return redirect(url_for('raffle'))
+
+    return render_template('raffle.html')
+
 
 @app.route('/logout')
 def member_logout():
@@ -540,21 +861,21 @@ def increment_counter():
     # Basic security check - only allow if not logged in as member
     if session.get('member_logged_in'):
         return {'success': False, 'error': 'Not allowed for logged-in members'}, 403
-    
+
     conn = get_db_connection()
-    
+
     # Get current count
     counter_row = conn.execute('SELECT current_count FROM member_counter ORDER BY id DESC LIMIT 1').fetchone()
     current_count = counter_row[0] if counter_row else 1247
-    
+
     # Increment by 1
     new_count = current_count + 1
-    
+
     # Update in database
     conn.execute('UPDATE member_counter SET current_count = ?, last_updated = CURRENT_TIMESTAMP WHERE id = (SELECT id FROM member_counter ORDER BY id DESC LIMIT 1)', (new_count,))
     conn.commit()
     conn.close()
-    
+
     return {'success': True, 'new_count': new_count}
 
 @app.route('/admin/counter')
@@ -565,7 +886,7 @@ def admin_counter():
     conn = get_db_connection()
     counter_row = conn.execute('SELECT current_count, last_updated FROM member_counter ORDER BY id DESC LIMIT 1').fetchone()
     conn.close()
-    
+
     current_count = counter_row[0] if counter_row else 1247
     last_updated = counter_row[1] if counter_row else 'Never'
 
@@ -577,12 +898,12 @@ def admin_update_counter():
         return redirect(url_for('admin_login'))
 
     new_count = request.form.get('new_count')
-    
+
     # Validation
     if not new_count or not new_count.isdigit():
         flash('Please enter a valid number.', 'error')
         return redirect(url_for('admin_counter'))
-    
+
     new_count = int(new_count)
     if new_count < 0:
         flash('Counter value cannot be negative.', 'error')
