@@ -9,6 +9,7 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 import smtplib
 from email.message import EmailMessage
+from functools import wraps 
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or 'chase-rice-fanpage-secret-2023'
@@ -38,21 +39,22 @@ def send_email(subject: str, to_addrs: list[str], html_body: str, text_body: str
             msg.set_content(html_body, subtype="html")
 
         if EMAIL_USE_SSL:
-            with smtplib.SMTP_SSL(EMAIL_SMTP_HOST, EMAIL_SMTP_PORT) as smtp:
-                if EMAIL_USERNAME and EMAIL_PASSWORD:
-                    smtp.login(EMAIL_USERNAME, EMAIL_PASSWORD)
-                smtp.send_message(msg)
-        except Exception as e:
-            print(f"[EMAIL ERROR] SSL connection failed: {e}")
-            # Fallback to regular SMTP
-            with smtplib.SMTP(EMAIL_SMTP_HOST, EMAIL_SMTP_PORT) as smtp:
-                try:
-                    smtp.starttls()
-                except smtplib.SMTPException:
-                    pass
-                if EMAIL_USERNAME and EMAIL_PASSWORD:
-                    smtp.login(EMAIL_USERNAME, EMAIL_PASSWORD)
-                smtp.send_message(msg)
+            try:
+                with smtplib.SMTP_SSL(EMAIL_SMTP_HOST, EMAIL_SMTP_PORT) as smtp:
+                    if EMAIL_USERNAME and EMAIL_PASSWORD:
+                        smtp.login(EMAIL_USERNAME, EMAIL_PASSWORD)
+                    smtp.send_message(msg)
+            except Exception as e:
+                print(f"[EMAIL ERROR] SSL connection failed: {e}")
+                # Fallback to regular SMTP
+                with smtplib.SMTP(EMAIL_SMTP_HOST, EMAIL_SMTP_PORT) as smtp:
+                    try:
+                        smtp.starttls()
+                    except smtplib.SMTPException:
+                        pass
+                    if EMAIL_USERNAME and EMAIL_PASSWORD:
+                        smtp.login(EMAIL_USERNAME, EMAIL_PASSWORD)
+                    smtp.send_message(msg)
         else:
             with smtplib.SMTP(EMAIL_SMTP_HOST, EMAIL_SMTP_PORT) as smtp:
                 try:
@@ -398,7 +400,6 @@ def get_db_connection():
 
 # Helper function to check if user is logged in
 def member_required(f):
-    from functools import wraps
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not session.get('member_logged_in'):
@@ -479,7 +480,7 @@ def winners():
     return render_template('winners.html', winners=winners)
 
 # Member authentication routes
-('/register', methods=['GET', 'POST'])
+@app.route('/register', methods=['GET', 'POST'])
 def member_register():
     if request.method == 'POST':
         username = request.form['username']
