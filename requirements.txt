@@ -3,5 +3,5 @@ Werkzeug==2.3.7
 gunicorn==21.2.0
 requests==2.31.0
 SQLAlchemy==2.0.36
-psycopg2-binary==2.9.9
+psycopg[binary]==3.2.3
 typing-extensions==4.12.2
