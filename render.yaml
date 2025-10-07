@@ -1,11 +1,7 @@
 services:
 - type: web
-  name: chase-rice-fanpage
+  name: chase-rice-fanclub
   env: python
-  plan: free
   buildCommand: pip install -r requirements.txt
   startCommand: gunicorn app:app -c gunicorn_config.py
-  healthCheckPath: /health
-  envVars:
-    - key: PYTHON_VERSION
-      value: 3.11.0
+  postdeployCommand: python -c "import app; app.init_db()"
