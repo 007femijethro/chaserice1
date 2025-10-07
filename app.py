@@ -13,6 +13,8 @@ from functools import wraps
 from contextlib import contextmanager
 from sqlalchemy import text
 from db import engine
+from dotenv import load_dotenv
+load_dotenv()
 
 
 app = Flask(__name__)
@@ -58,6 +60,17 @@ email_thread = threading.Thread(target=email_worker, daemon=True)
 email_thread.start()
 
 def send_email(subject: str, to_addrs: list[str], html_body: str, text_body: str | None = None):
+    # Add this right after your email configuration section in app.py
+    print("=== EMAIL CONFIGURATION ===")
+    print(f"SMTP_HOST: {EMAIL_SMTP_HOST}")
+    print(f"SMTP_PORT: {EMAIL_SMTP_PORT}")
+    print(f"EMAIL_USERNAME: {EMAIL_USERNAME}")
+    print(f"EMAIL_PASSWORD: {'*' * len(EMAIL_PASSWORD) if EMAIL_PASSWORD else 'None'}")
+    print(f"EMAIL_FROM: {EMAIL_FROM}")
+    print(f"EMAIL_FROM_NAME: {EMAIL_FROM_NAME}")
+    print(f"ADMIN_EMAIL: {ADMIN_EMAIL}")
+    print(f"EMAIL_USE_SSL: {EMAIL_USE_SSL}")
+    print("===========================")
     if not to_addrs:
         return
     try:
@@ -1064,10 +1077,11 @@ def cleanup_email_worker():
 import atexit
 atexit.register(cleanup_email_worker)
 
+
 if __name__ == '__main__':
     init_db()
+    # either turn debug off entirely
+    # app.run(host='0.0.0.0', port=5000, debug=False)
 
-    # Start the keep-alive thread (optional - uncomment if you want automatic pinging)
-    # threading.Thread(target=keep_alive, daemon=True).start()
-
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # or keep debug but disable the reloader (recommended on Replit/Nix)
+    app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)
