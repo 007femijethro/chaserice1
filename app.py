@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_from_directory
-import sqlite3
 import os
 import random
 import threading
@@ -12,6 +11,9 @@ import smtplib
 from email.message import EmailMessage
 from functools import wraps 
 from contextlib import contextmanager
+from sqlalchemy import text
+from db import engine
+
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or 'chase-rice-fanpage-secret-2023'
@@ -133,7 +135,7 @@ def send_welcome_email(member_data):
                 <h1>🎵 Chase Rice Fan Club 🎵</h1>
             </div>
             <div class="content">
-                <div class="welcome">Welcome aboard, {member_data['first_name'] or member_data['username']}!</div>
+                <div class="welcome">Welcome aboard, {member_data.get('first_name') or member_data.get('username')}!</div>
 
                 <p>We're thrilled to have you join our community of Chase Rice fans! Here's what you can look forward to:</p>
 
@@ -146,8 +148,8 @@ def send_welcome_email(member_data):
                 </ul>
 
                 <p>Your account has been successfully created with the following details:</p>
-                <p><strong>Username:</strong> {member_data['username']}<br>
-                <strong>Email:</strong> {member_data['email']}<br>
+                <p><strong>Username:</strong> {member_data.get('username')}<br>
+                <strong>Email:</strong> {member_data.get('email')}<br>
                 <strong>Member Since:</strong> {datetime.now().strftime('%B %d, %Y')}</p>
 
                 <a href="{url_for('index', _external=True)}" class="button">Visit Fan Club</a>
@@ -166,13 +168,13 @@ def send_welcome_email(member_data):
     """
 
     text_body = f"""
-    Welcome to the Chase Rice Fan Club, {member_data['first_name'] or member_data['username']}!
+    Welcome to the Chase Rice Fan Club, {member_data.get('first_name') or member_data.get('username')}!
 
     We're thrilled to have you join our community of Chase Rice fans! 
 
     Your account details:
-    Username: {member_data['username']}
-    Email: {member_data['email']}
+    Username: {member_data.get('username')}
+    Email: {member_data.get('email')}
     Member Since: {datetime.now().strftime('%B %d, %Y')}
 
     What you'll get as a member:
@@ -190,7 +192,7 @@ def send_welcome_email(member_data):
     This is an automated message, please do not reply directly to this email.
     """
 
-    send_email_async(subject, [member_data['email']], html_body, text_body)
+    send_email_async(subject, [member_data.get('email')], html_body, text_body)
 
 def send_admin_notification(subject, member_data, action_type="registration"):
     """Send notification email to admin"""
@@ -233,8 +235,8 @@ def send_admin_notification(subject, member_data, action_type="registration"):
 
                 <h3>Member Details:</h3>
                 <table class="info-table">
-                    <tr><th>Username:</th><td>{member_data['username']}</td></tr>
-                    <tr><th>Email:</th><td>{member_data['email']}</td></tr>
+                    <tr><th>Username:</th><td>{member_data.get('username')}</td></tr>
+                    <tr><th>Email:</th><td>{member_data.get('email')}</td></tr>
                     <tr><th>Full Name:</th><td>{member_data.get('first_name', '')} {member_data.get('last_name', '')}</td></tr>
                     <tr><th>Phone:</th><td>{member_data.get('phone_number', 'Not provided')}</td></tr>
                     <tr><th>Sex:</th><td>{member_data.get('sex', 'Not specified')}</td></tr>
@@ -244,7 +246,7 @@ def send_admin_notification(subject, member_data, action_type="registration"):
 
                 {f"<h3>Message to Chase:</h3><p>{member_data.get('message_to_chase', 'None')}</p>" if member_data.get('message_to_chase') else ""}
 
-                <p><a href="{url_for('admin_member_detail', member_id=member_data['id'], _external=True)}">View member details in admin panel</a></p>
+                <p><a href="{url_for('admin_member_detail', member_id=member_data.get('id'), _external=True)}">View member details in admin panel</a></p>
             </div>
         </div>
     </body>
@@ -260,8 +262,8 @@ def send_admin_notification(subject, member_data, action_type="registration"):
 
     Member Details:
     ---------------
-    Username: {member_data['username']}
-    Email: {member_data['email']}
+    Username: {member_data.get('username')}
+    Email: {member_data.get('email')}
     Full Name: {member_data.get('first_name', '')} {member_data.get('last_name', '')}
     Phone: {member_data.get('phone_number', 'Not provided')}
     Sex: {member_data.get('sex', 'Not specified')}
@@ -270,7 +272,7 @@ def send_admin_notification(subject, member_data, action_type="registration"):
 
     {f"Message to Chase: {member_data.get('message_to_chase', 'None')}" if member_data.get('message_to_chase') else ""}
 
-    View member details: {url_for('admin_member_detail', member_id=member_data['id'], _external=True)}
+    View member details: {url_for('admin_member_detail', member_id=member_data.get('id'), _external=True)}
     """
 
     send_email_async(subject, [ADMIN_EMAIL], html_body, text_body)
@@ -302,13 +304,13 @@ def send_raffle_confirmation(entry_data):
             <div class="content">
                 <div class="confirmation">You're officially entered!</div>
 
-                <p>Hello {entry_data['name']},</p>
+                <p>Hello {entry_data.get('name')},</p>
                 <p>Your entry into the Chase Rice raffle has been confirmed. Good luck!</p>
 
                 <div class="entry-details">
                     <h3>Your Entry Details:</h3>
-                    <p><strong>Name:</strong> {entry_data['name']}<br>
-                    <strong>Email:</strong> {entry_data['email']}<br>
+                    <p><strong>Name:</strong> {entry_data.get('name')}<br>
+                    <strong>Email:</strong> {entry_data.get('email')}<br>
                     <strong>Favorite Song:</strong> {entry_data.get('favorite_song', 'Not specified')}<br>
                     <strong>Entry Date:</strong> {datetime.now().strftime('%B %d, %Y at %H:%M')}</p>
                 </div>
@@ -325,128 +327,126 @@ def send_raffle_confirmation(entry_data):
     </html>
     """
 
-    send_email_async(subject, [entry_data['email']], html_body)
+    send_email_async(subject, [entry_data.get('email')], html_body)
 # --- End email configuration ---
 
-# Database initialization
+# Database initialization (Postgres/SQLAlchemy)
 def init_db():
-    conn = sqlite3.connect('database.db')
-    c = conn.cursor()
+    with engine.begin() as conn:
+        # raffle_entries
+        conn.execute(text('''
+            CREATE TABLE IF NOT EXISTS raffle_entries (
+                id SERIAL PRIMARY KEY,
+                name TEXT NOT NULL,
+                email TEXT NOT NULL,
+                favorite_song TEXT,
+                entry_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        '''))
 
-    # Create raffle entries table
-    c.execute('''CREATE TABLE IF NOT EXISTS raffle_entries
-                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  name TEXT NOT NULL,
-                  email TEXT NOT NULL,
-                  favorite_song TEXT,
-                  entry_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
+        # admin_users
+        conn.execute(text('''
+            CREATE TABLE IF NOT EXISTS admin_users (
+                id SERIAL PRIMARY KEY,
+                username TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL
+            )
+        '''))
 
-    # Create admin users table
-    c.execute('''CREATE TABLE IF NOT EXISTS admin_users
-                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  username TEXT UNIQUE NOT NULL,
-                  password_hash TEXT NOT NULL)''')
+        # members
+        conn.execute(text('''
+            CREATE TABLE IF NOT EXISTS members (
+                id SERIAL PRIMARY KEY,
+                username TEXT UNIQUE NOT NULL,
+                email TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                first_name TEXT,
+                last_name TEXT,
+                phone_number TEXT,
+                sex TEXT,
+                date_of_birth TEXT,
+                message_to_chase TEXT,
+                newsletter_subscription INTEGER DEFAULT 0,
+                registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        '''))
 
-    # Create members table
-    c.execute('''CREATE TABLE IF NOT EXISTS members
-                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  username TEXT UNIQUE NOT NULL,
-                  email TEXT UNIQUE NOT NULL,
-                  password_hash TEXT NOT NULL,
-                  first_name TEXT,
-                  last_name TEXT,
-                  phone_number TEXT,
-                  sex TEXT,
-                  date_of_birth TEXT,
-                  message_to_chase TEXT,
-                  newsletter_subscription INTEGER DEFAULT 0,
-                  registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
+        # winners
+        conn.execute(text('''
+            CREATE TABLE IF NOT EXISTS winners (
+                id SERIAL PRIMARY KEY,
+                raffle_id INTEGER,
+                win_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT fk_winner_raffle FOREIGN KEY(raffle_id) REFERENCES raffle_entries(id)
+            )
+        '''))
 
-    # Add missing columns to existing members table if they don't exist
-    try:
-        c.execute("ALTER TABLE members ADD COLUMN message_to_chase TEXT")
-    except sqlite3.OperationalError:
-        pass  # Column already exists
+        # tours
+        conn.execute(text('''
+            CREATE TABLE IF NOT EXISTS tours (
+                id SERIAL PRIMARY KEY,
+                date TEXT NOT NULL,
+                venue TEXT NOT NULL,
+                city TEXT NOT NULL,
+                state_or_country TEXT NOT NULL,
+                ticket_url TEXT,
+                created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        '''))
 
-    try:
-        c.execute("ALTER TABLE members ADD COLUMN newsletter_subscription INTEGER DEFAULT 0")
-    except sqlite3.OperationalError:
-        pass  # Column already exists
+        # unique index for idempotent tour updates
+        conn.execute(text('''
+            CREATE UNIQUE INDEX IF NOT EXISTS uniq_tour
+            ON tours(date, venue, city, state_or_country)
+        '''))
 
-    # Create winners table
-    c.execute('''CREATE TABLE IF NOT EXISTS winners
-                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  raffle_id INTEGER,
-                  win_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                  FOREIGN KEY(raffle_id) REFERENCES raffle_entries(id))''')
+        # member_counter
+        conn.execute(text('''
+            CREATE TABLE IF NOT EXISTS member_counter (
+                id SERIAL PRIMARY KEY,
+                current_count INTEGER NOT NULL DEFAULT 1247,
+                last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        '''))
 
-    # Create tours table
-    c.execute('''CREATE TABLE IF NOT EXISTS tours
-                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  date TEXT NOT NULL,
-                  venue TEXT NOT NULL,
-                  city TEXT NOT NULL,
-                  state_or_country TEXT NOT NULL,
-                  ticket_url TEXT,
-                  created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
+        # Insert default member counter if not exists
+        row = conn.execute(text('SELECT COUNT(*) AS c FROM member_counter')).fetchone()
+        if row and (row[0] or row._mapping.get('c')) == 0:
+            conn.execute(text('INSERT INTO member_counter (current_count) VALUES (1247)'))
 
-    # Create unique index for idempotent tour updates
-    c.execute('''CREATE UNIQUE INDEX IF NOT EXISTS uniq_tour 
-                 ON tours(date, venue, city, state_or_country)''')
+        # Insert default admin user if not exists
+        password_hash = generate_password_hash('admin123')
+        conn.execute(text('''
+            INSERT INTO admin_users (username, password_hash)
+            VALUES (:u, :p)
+            ON CONFLICT (username) DO NOTHING
+        '''), {"u": "admin", "p": password_hash})
 
-    # Insert current GO DOWN SINGIN' INTERNATIONAL TOUR 2025 dates (truly idempotent)
-    current_tours = [
-        ('2025-09-25', 'Vina Robles Amphitheatre', 'Paso Robles', 'CA', 'https://www.ticketmaster.com/chase-rice-tickets/artist/1580113'),
-        ('2025-09-26', 'House of Blues Anaheim', 'Anaheim', 'CA', 'https://www.ticketmaster.com/chase-rice-tickets/artist/1580113'),
-        ('2025-09-27', 'The Fruit Yard Amphitheater', 'Modesto', 'CA', 'https://www.ticketmaster.com/chase-rice-tickets/artist/1580113'),
-        ('2025-10-02', 'Hampton Beach Casino Ballroom', 'Hampton Beach', 'NH', 'https://www.ticketmaster.com/chase-rice-tickets/artist/1580113'),
-        ('2025-10-04', 'Toads Place', 'New Haven', 'CT', 'https://www.ticketmaster.com/chase-rice-tickets/artist/1580113'),
-        ('2025-10-16', 'The Jones Assembly', 'Oklahoma City', 'OK', 'https://www.ticketmaster.com/chase-rice-tickets/artist/1580113'),
-        ('2025-10-17', 'Golden Nugget', 'Lake Charles', 'LA', 'https://www.ticketmaster.com/chase-rice-tickets/artist/1580113')
-    ]
-
-    # Ensure current 2025 tour dates are present (truly idempotent with unique constraint)
-    for date, venue, city, state, url in current_tours:
-        c.execute('''INSERT OR REPLACE INTO tours (date, venue, city, state_or_country, ticket_url) 
-                    VALUES (?, ?, ?, ?, ?)''', (date, venue, city, state, url))
-
-    # Create member counter table
-    c.execute('''CREATE TABLE IF NOT EXISTS member_counter
-                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  current_count INTEGER NOT NULL DEFAULT 1247,
-                  last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
-
-    # Insert default member counter if not exists
-    c.execute("SELECT COUNT(*) FROM member_counter")
-    if c.fetchone()[0] == 0:
-        c.execute("INSERT INTO member_counter (current_count) VALUES (1247)")
-
-    # Insert default admin user if not exists
-    password_hash = generate_password_hash('admin123')
-    try:
-        c.execute("INSERT INTO admin_users (username, password_hash) VALUES (?, ?)", 
-                 ('admin', password_hash))
-    except sqlite3.IntegrityError:
-        pass  # Admin user already exists
-
-    conn.commit()
-    conn.close()
+        # Seed tour dates (idempotent upsert)
+        current_tours = [
+            ('2025-09-25', 'Vina Robles Amphitheatre', 'Paso Robles', 'CA', 'https://www.ticketmaster.com/chase-rice-tickets/artist/1580113'),
+            ('2025-09-26', 'House of Blues Anaheim', 'Anaheim', 'CA', 'https://www.ticketmaster.com/chase-rice-tickets/artist/1580113'),
+            ('2025-09-27', 'The Fruit Yard Amphitheater', 'Modesto', 'CA', 'https://www.ticketmaster.com/chase-rice-tickets/artist/1580113'),
+            ('2025-10-02', 'Hampton Beach Casino Ballroom', 'Hampton Beach', 'NH', 'https://www.ticketmaster.com/chase-rice-tickets/artist/1580113'),
+            ('2025-10-04', 'Toads Place', 'New Haven', 'CT', 'https://www.ticketmaster.com/chase-rice-tickets/artist/1580113'),
+            ('2025-10-16', 'The Jones Assembly', 'Oklahoma City', 'OK', 'https://www.ticketmaster.com/chase-rice-tickets/artist/1580113'),
+            ('2025-10-17', 'Golden Nugget', 'Lake Charles', 'LA', 'https://www.ticketmaster.com/chase-rice-tickets/artist/1580113')
+        ]
+        for date_v, venue, city, state, url in current_tours:
+            conn.execute(text('''
+                INSERT INTO tours (date, venue, city, state_or_country, ticket_url)
+                VALUES (:date, :venue, :city, :state, :url)
+                ON CONFLICT (date, venue, city, state_or_country)
+                DO UPDATE SET ticket_url = EXCLUDED.ticket_url,
+                              created_date = CURRENT_TIMESTAMP
+            '''), {"date": date_v, "venue": venue, "city": city, "state": state, "url": url})
 
 # Database connection helper
 @contextmanager
 def get_db_connection():
-    """Optimized database connection with timeout"""
-    conn = sqlite3.connect('database.db', timeout=20)
-    conn.row_factory = sqlite3.Row
-    conn.execute('PRAGMA journal_mode=WAL')  # Better concurrency
-    conn.execute('PRAGMA synchronous=NORMAL')  # Faster writes
-    try:
+    # yields a SQLAlchemy Connection with transaction
+    with engine.begin() as conn:
         yield conn
-    except sqlite3.Error as e:
-        conn.rollback()
-        raise e
-    finally:
-        conn.close()
 
 # Helper function to check if user is logged in
 def member_required(f):
@@ -512,10 +512,10 @@ def keep_alive():
 def index():
     # Fetch upcoming tours for the homepage
     with get_db_connection() as conn:
-        tours = conn.execute('SELECT * FROM tours ORDER BY date ASC LIMIT 3').fetchall()
+        tours = conn.execute(text('SELECT * FROM tours ORDER BY date ASC LIMIT 3')).fetchall()
 
         # Fetch current member counter
-        counter_row = conn.execute('SELECT current_count FROM member_counter ORDER BY id DESC LIMIT 1').fetchone()
+        counter_row = conn.execute(text('SELECT current_count FROM member_counter ORDER BY id DESC LIMIT 1')).fetchone()
         member_count = counter_row[0] if counter_row else 1247
 
     return render_template('index.html', tours=tours, member_count=member_count)
@@ -534,17 +534,19 @@ def music():
 @member_required
 def tour():
     with get_db_connection() as conn:
-        tours = conn.execute('SELECT * FROM tours ORDER BY date ASC').fetchall()
+        tours = conn.execute(text('SELECT * FROM tours ORDER BY date ASC')).fetchall()
     return render_template('tour.html', tours=tours)
 
 @app.route('/winners')
 @member_required
 def winners():
     with get_db_connection() as conn:
-        winners = conn.execute('''SELECT raffle_entries.name, raffle_entries.favorite_song, winners.win_date 
-                                 FROM winners 
-                                 JOIN raffle_entries ON winners.raffle_id = raffle_entries.id 
-                                 ORDER BY winners.win_date DESC''').fetchall()
+        winners = conn.execute(text('''
+            SELECT raffle_entries.name, raffle_entries.favorite_song, winners.win_date 
+            FROM winners 
+            JOIN raffle_entries ON winners.raffle_id = raffle_entries.id 
+            ORDER BY winners.win_date DESC
+        ''')).fetchall()
     return render_template('winners.html', winners=winners)
 
 # Member authentication routes
@@ -582,11 +584,13 @@ def member_register():
                                  username=username, email=email, first_name=first_name,
                                  last_name=last_name, phone_number=phone_number)
 
-        # Check if user already exists
+        # Check if user already exists & create new member
         try:
             with get_db_connection() as conn:
-                existing_user = conn.execute('SELECT * FROM members WHERE username = ? OR email = ?', 
-                                           (username, email)).fetchone()
+                existing_user = conn.execute(
+                    text('SELECT 1 FROM members WHERE username = :username OR email = :email'),
+                    {"username": username, "email": email}
+                ).fetchone()
 
                 if existing_user:
                     flash('Username or email already exists.', 'error')
@@ -594,19 +598,27 @@ def member_register():
                                          username=username, email=email, first_name=first_name,
                                          last_name=last_name, phone_number=phone_number)
 
-                # Create new member
                 password_hash = generate_password_hash(password)
-                cursor = conn.cursor()
-                cursor.execute('''INSERT INTO members (username, email, password_hash, first_name, last_name, phone_number, sex, date_of_birth, message_to_chase, newsletter_subscription) 
-                               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', 
-                            (username, email, password_hash, first_name, last_name, phone_number, sex, date_of_birth, message_to_chase, newsletter_subscription))
-                member_id = cursor.lastrowid
-                conn.commit()
+                new_id_row = conn.execute(text('''
+                    INSERT INTO members (username, email, password_hash, first_name, last_name, phone_number, sex, date_of_birth, message_to_chase, newsletter_subscription)
+                    VALUES (:username, :email, :password_hash, :first_name, :last_name, :phone_number, :sex, :date_of_birth, :message_to_chase, :newsletter_subscription)
+                    RETURNING id
+                '''), {
+                    "username": username,
+                    "email": email,
+                    "password_hash": password_hash,
+                    "first_name": first_name,
+                    "last_name": last_name,
+                    "phone_number": phone_number,
+                    "sex": sex,
+                    "date_of_birth": date_of_birth,
+                    "message_to_chase": message_to_chase,
+                    "newsletter_subscription": newsletter_subscription
+                }).fetchone()
 
-                # Get the newly created member data
-                new_member = conn.execute('SELECT * FROM members WHERE id = ?', (member_id,)).fetchone()
-
-        except sqlite3.Error as e:
+                member_id = new_id_row[0]
+                new_member = conn.execute(text('SELECT * FROM members WHERE id = :id'), {"id": member_id}).fetchone()
+        except Exception as e:
             flash('Database error. Please try again.', 'error')
             print(f"Database error during registration: {e}")
             return render_template('member_register.html',
@@ -615,7 +627,7 @@ def member_register():
 
         # Send welcome email to new member (async)
         try:
-            member_data = dict(new_member)
+            member_data = dict(new_member._mapping)
             send_welcome_email(member_data)
         except Exception as e:
             print(f"[EMAIL ERROR] Welcome email failed: {e}")
@@ -643,30 +655,33 @@ def member_login():
 
         try:
             with get_db_connection() as conn:
-                user = conn.execute('SELECT * FROM members WHERE username = ? OR email = ?', 
-                                  (username, username)).fetchone()
-        except sqlite3.Error as e:
+                user = conn.execute(
+                    text('SELECT * FROM members WHERE username = :u OR email = :u'),
+                    {"u": username}
+                ).fetchone()
+        except Exception as e:
             flash('Database error. Please try again.', 'error')
             print(f"Database error during login: {e}")
             return render_template('member_login.html')
 
-        if user and check_password_hash(user['password_hash'], password):
+        if user and check_password_hash(user._mapping['password_hash'], password):
             session['member_logged_in'] = True
-            session['member_id'] = user['id']
-            session['member_username'] = user['username']
+            session['member_id'] = user._mapping['id']
+            session['member_username'] = user._mapping['username']
 
             # Send sign-in notification to admin (async)
             try:
-                member_data = dict(user)
+                member_data = dict(user._mapping)
                 send_admin_notification(
-                    f"Member Sign In: {user['username']}",
+                    f"Member Sign In: {user._mapping['username']}",
                     member_data,
                     "login"
                 )
             except Exception as e:
                 print(f"[EMAIL ERROR] Sign-in notification failed: {e}")
 
-            flash(f'Welcome back, {user["first_name"] or user["username"]}!', 'success')
+            first_name = user._mapping.get("first_name")
+            flash(f"Welcome back, {first_name or user._mapping['username']}!", 'success')
             return redirect(url_for('bio'))
         else:
             flash('Invalid username/email or password.', 'error')
@@ -687,10 +702,9 @@ def raffle():
 
         try:
             with get_db_connection() as conn:
-                conn.execute('INSERT INTO raffle_entries (name, email, favorite_song) VALUES (?, ?, ?)',
-                            (name, email, favorite_song))
-                conn.commit()
-        except sqlite3.Error as e:
+                conn.execute(text('INSERT INTO raffle_entries (name, email, favorite_song) VALUES (:name, :email, :favorite_song)'),
+                            {"name": name, "email": email, "favorite_song": favorite_song})
+        except Exception as e:
             flash('Database error. Please try again.', 'error')
             print(f"Database error during raffle entry: {e}")
             return redirect(url_for('raffle'))
@@ -727,13 +741,13 @@ def admin_login():
 
         try:
             with get_db_connection() as conn:
-                user = conn.execute('SELECT * FROM admin_users WHERE username = ?', (username,)).fetchone()
-        except sqlite3.Error as e:
+                user = conn.execute(text('SELECT * FROM admin_users WHERE username = :u'), {"u": username}).fetchone()
+        except Exception as e:
             flash('Database error. Please try again.', 'error')
             print(f"Database error during admin login: {e}")
             return render_template('admin_login.html')
 
-        if user and check_password_hash(user['password_hash'], password):
+        if user and check_password_hash(user._mapping['password_hash'], password):
             session['admin_logged_in'] = True
             session['admin_username'] = username
             flash('Login successful!', 'success')
@@ -749,8 +763,8 @@ def admin_dashboard():
         return redirect(url_for('admin_login'))
 
     with get_db_connection() as conn:
-        entry_count = conn.execute('SELECT COUNT(*) FROM raffle_entries').fetchone()[0]
-        recent_entries = conn.execute('SELECT * FROM raffle_entries ORDER BY entry_date DESC LIMIT 5').fetchall()
+        entry_count = conn.execute(text('SELECT COUNT(*) FROM raffle_entries')).fetchone()[0]
+        recent_entries = conn.execute(text('SELECT * FROM raffle_entries ORDER BY entry_date DESC LIMIT 5')).fetchall()
 
     return render_template('admin_dashboard.html', entry_count=entry_count, recent_entries=recent_entries)
 
@@ -760,8 +774,10 @@ def admin_members():
         return redirect(url_for('admin_login'))
 
     with get_db_connection() as conn:
-        members = conn.execute('''SELECT id, username, email, first_name, last_name, phone_number, sex, date_of_birth, registration_date 
-                                 FROM members ORDER BY registration_date DESC''').fetchall()
+        members = conn.execute(text('''
+            SELECT id, username, email, first_name, last_name, phone_number, sex, date_of_birth, registration_date 
+            FROM members ORDER BY registration_date DESC
+        ''')).fetchall()
 
     return render_template('admin_members.html', members=members)
 
@@ -771,7 +787,7 @@ def admin_member_detail(member_id):
         return redirect(url_for('admin_login'))
 
     with get_db_connection() as conn:
-        member = conn.execute('SELECT * FROM members WHERE id = ?', (member_id,)).fetchone()
+        member = conn.execute(text('SELECT * FROM members WHERE id = :id'), {"id": member_id}).fetchone()
 
     if not member:
         flash('Member not found.', 'error')
@@ -786,21 +802,20 @@ def admin_delete_member(member_id):
 
     try:
         with get_db_connection() as conn:
-            member = conn.execute('SELECT * FROM members WHERE id = ?', (member_id,)).fetchone()
+            member = conn.execute(text('SELECT * FROM members WHERE id = :id'), {"id": member_id}).fetchone()
 
             if not member:
                 flash('Member not found.', 'error')
                 return redirect(url_for('admin_members'))
 
             # Delete the member
-            conn.execute('DELETE FROM members WHERE id = ?', (member_id,))
-            conn.commit()
-    except sqlite3.Error as e:
+            conn.execute(text('DELETE FROM members WHERE id = :id'), {"id": member_id})
+    except Exception as e:
         flash('Database error. Please try again.', 'error')
         print(f"Database error during member deletion: {e}")
         return redirect(url_for('admin_members'))
 
-    flash(f'Member "{member["username"]}" has been deleted successfully.', 'success')
+    flash(f'Member "{member._mapping["username"]}" has been deleted successfully.', 'success')
     return redirect(url_for('admin_members'))
 
 @app.route('/admin/member/add', methods=['GET', 'POST'])
@@ -831,21 +846,30 @@ def admin_add_member():
 
         try:
             with get_db_connection() as conn:
-                # Check if user already exists
-                existing_user = conn.execute('SELECT * FROM members WHERE username = ? OR email = ?', 
-                                           (username, email)).fetchone()
+                existing_user = conn.execute(text('SELECT 1 FROM members WHERE username = :username OR email = :email'),
+                                             {"username": username, "email": email}).fetchone()
 
                 if existing_user:
                     flash('Username or email already exists.', 'error')
                     return redirect(url_for('admin_add_member'))
 
-                # Create new member
                 password_hash = generate_password_hash(password)
-                conn.execute('''INSERT INTO members (username, email, password_hash, first_name, last_name, phone_number, sex, date_of_birth, message_to_chase, newsletter_subscription) 
-                               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', 
-                            (username, email, password_hash, first_name, last_name, phone_number, sex, date_of_birth, message_to_chase, newsletter_subscription))
-                conn.commit()
-        except sqlite3.Error as e:
+                conn.execute(text('''
+                    INSERT INTO members (username, email, password_hash, first_name, last_name, phone_number, sex, date_of_birth, message_to_chase, newsletter_subscription)
+                    VALUES (:username, :email, :password_hash, :first_name, :last_name, :phone_number, :sex, :date_of_birth, :message_to_chase, :newsletter_subscription)
+                '''), {
+                    "username": username,
+                    "email": email,
+                    "password_hash": password_hash,
+                    "first_name": first_name,
+                    "last_name": last_name,
+                    "phone_number": phone_number,
+                    "sex": sex,
+                    "date_of_birth": date_of_birth,
+                    "message_to_chase": message_to_chase,
+                    "newsletter_subscription": newsletter_subscription
+                })
+        except Exception as e:
             flash('Database error. Please try again.', 'error')
             print(f"Database error during admin member add: {e}")
             return redirect(url_for('admin_add_member'))
@@ -861,7 +885,7 @@ def admin_tours():
         return redirect(url_for('admin_login'))
 
     with get_db_connection() as conn:
-        tours = conn.execute('SELECT * FROM tours ORDER BY date ASC').fetchall()
+        tours = conn.execute(text('SELECT * FROM tours ORDER BY date ASC')).fetchall()
 
     return render_template('admin_tours.html', tours=tours)
 
@@ -885,11 +909,14 @@ def admin_add_tour():
         # Create new tour
         try:
             with get_db_connection() as conn:
-                conn.execute('''INSERT INTO tours (date, venue, city, state_or_country, ticket_url) 
-                               VALUES (?, ?, ?, ?, ?)''', 
-                            (date, venue, city, state_or_country, ticket_url))
-                conn.commit()
-        except sqlite3.Error as e:
+                conn.execute(text('''
+                    INSERT INTO tours (date, venue, city, state_or_country, ticket_url)
+                    VALUES (:date, :venue, :city, :state, :url)
+                    ON CONFLICT (date, venue, city, state_or_country)
+                    DO UPDATE SET ticket_url = EXCLUDED.ticket_url,
+                                  created_date = CURRENT_TIMESTAMP
+                '''), {"date": date, "venue": venue, "city": city, "state": state_or_country, "url": ticket_url})
+        except Exception as e:
             flash('Database error. Please try again.', 'error')
             print(f"Database error during tour add: {e}")
             return redirect(url_for('admin_add_tour'))
@@ -906,21 +933,20 @@ def admin_delete_tour(tour_id):
 
     try:
         with get_db_connection() as conn:
-            tour = conn.execute('SELECT * FROM tours WHERE id = ?', (tour_id,)).fetchone()
+            tour = conn.execute(text('SELECT * FROM tours WHERE id = :id'), {"id": tour_id}).fetchone()
 
             if not tour:
                 flash('Tour not found.', 'error')
                 return redirect(url_for('admin_tours'))
 
             # Delete the tour
-            conn.execute('DELETE FROM tours WHERE id = ?', (tour_id,))
-            conn.commit()
-    except sqlite3.Error as e:
+            conn.execute(text('DELETE FROM tours WHERE id = :id'), {"id": tour_id})
+    except Exception as e:
         flash('Database error. Please try again.', 'error')
         print(f"Database error during tour deletion: {e}")
         return redirect(url_for('admin_tours'))
 
-    flash(f'Tour at {tour["venue"]} has been deleted successfully.', 'success')
+    flash(f'Tour at {tour._mapping["venue"]} has been deleted successfully.', 'success')
     return redirect(url_for('admin_tours'))
 
 @app.route('/admin/pick_winner')
@@ -930,7 +956,7 @@ def pick_winner():
 
     with get_db_connection() as conn:
         # Get all entries
-        entries = conn.execute('SELECT * FROM raffle_entries').fetchall()
+        entries = conn.execute(text('SELECT * FROM raffle_entries')).fetchall()
 
         if not entries:
             flash('No entries to pick from!', 'error')
@@ -940,12 +966,10 @@ def pick_winner():
         winner = random.choice(entries)
 
         # Add to winners table
-        conn.execute('INSERT INTO winners (raffle_id) VALUES (?)', (winner['id'],))
-        conn.commit()
+        conn.execute(text('INSERT INTO winners (raffle_id) VALUES (:rid)'), {"rid": winner._mapping['id']})
 
         # Get winner info for display
-        winner_info = conn.execute('''SELECT * FROM raffle_entries WHERE id = ?''', 
-                                  (winner['id'],)).fetchone()
+        winner_info = conn.execute(text('SELECT * FROM raffle_entries WHERE id = :id'), {"id": winner._mapping['id']}).fetchone()
 
     return render_template('pick_winner.html', winner=winner_info)
 
@@ -966,16 +990,19 @@ def increment_counter():
     try:
         with get_db_connection() as conn:
             # Get current count
-            counter_row = conn.execute('SELECT current_count FROM member_counter ORDER BY id DESC LIMIT 1').fetchone()
+            counter_row = conn.execute(text('SELECT current_count FROM member_counter ORDER BY id DESC LIMIT 1')).fetchone()
             current_count = counter_row[0] if counter_row else 1247
 
             # Increment by 1
             new_count = current_count + 1
 
             # Update in database
-            conn.execute('UPDATE member_counter SET current_count = ?, last_updated = CURRENT_TIMESTAMP WHERE id = (SELECT id FROM member_counter ORDER BY id DESC LIMIT 1)', (new_count,))
-            conn.commit()
-    except sqlite3.Error as e:
+            conn.execute(text('''
+                UPDATE member_counter 
+                SET current_count = :n, last_updated = CURRENT_TIMESTAMP 
+                WHERE id = (SELECT id FROM member_counter ORDER BY id DESC LIMIT 1)
+            '''), {"n": new_count})
+    except Exception:
         return jsonify({'success': False, 'error': 'Database error'}), 500
 
     return jsonify({'success': True, 'new_count': new_count})
@@ -986,7 +1013,7 @@ def admin_counter():
         return redirect(url_for('admin_login'))
 
     with get_db_connection() as conn:
-        counter_row = conn.execute('SELECT current_count, last_updated FROM member_counter ORDER BY id DESC LIMIT 1').fetchone()
+        counter_row = conn.execute(text('SELECT current_count, last_updated FROM member_counter ORDER BY id DESC LIMIT 1')).fetchone()
 
     current_count = counter_row[0] if counter_row else 1247
     last_updated = counter_row[1] if counter_row else 'Never'
@@ -1013,9 +1040,12 @@ def admin_update_counter():
     # Update counter in database
     try:
         with get_db_connection() as conn:
-            conn.execute('UPDATE member_counter SET current_count = ?, last_updated = CURRENT_TIMESTAMP WHERE id = (SELECT id FROM member_counter ORDER BY id DESC LIMIT 1)', (new_count,))
-            conn.commit()
-    except sqlite3.Error as e:
+            conn.execute(text('''
+                UPDATE member_counter 
+                SET current_count = :n, last_updated = CURRENT_TIMESTAMP 
+                WHERE id = (SELECT id FROM member_counter ORDER BY id DESC LIMIT 1)
+            '''), {"n": new_count})
+    except Exception as e:
         flash('Database error. Please try again.', 'error')
         print(f"Database error during counter update: {e}")
         return redirect(url_for('admin_counter'))
