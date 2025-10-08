@@ -26,7 +26,8 @@
                             <tr style="border-bottom: 1px solid #eee;">
                                 <td style="padding: 10px;">{{ winner.name }}</td>
                                 <td style="padding: 10px;">{{ winner.favorite_song or "Not specified" }}</td>
-                                <td style="padding: 10px;">{{ winner.win_date }}</td>
+                                <td style="padding: 10px;">{{ winner.win_date.strftime('%Y-%m-%d') if winner.win_date else "" }}
+</td>
                             </tr>
                             {% endfor %}
                         </tbody>

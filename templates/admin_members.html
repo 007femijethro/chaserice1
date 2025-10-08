@@ -53,7 +53,8 @@
                                             <span style="color: #999;"><i class="fas fa-times-circle"></i> No</span>
                                         {% endif %}
                                     </td>
-                                    <td style="padding: 12px;">{{ member.registration_date.split(' ')[0] if member.registration_date else "Unknown" }}</td>
+                                    <td style="padding: 12px;">{{ member.registration_date.strftime('%Y-%m-%d') if member.registration_date else "Unknown" }}
+</td>
                                     <td style="padding: 12px;">
                                         <a href="{{ url_for('admin_member_detail', member_id=member.id) }}" 
                                            style="background: var(--accent); color: white; padding: 5px 10px; border-radius: 5px; text-decoration: none; font-size: 0.8rem; margin-right: 5px;">
