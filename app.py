@@ -1066,26 +1066,33 @@ def admin_update_counter():
     flash(f'Member counter updated to {new_count:,}!', 'success')
     return redirect(url_for('admin_counter'))
 
-# Ensure DB when the first request hits (works under Gunicorn on Render)
-@app.before_first_request
-def _ensure_db():
-    try:
-        init_db()
-        print("[INIT_DB] Tables ensured.")
-    except Exception as e:
-        print(f"[INIT_DB ERROR] {e}")
+# ---- Ensure DB once per worker on first request (Flask 2.x & 3.x compatible) ----
+import threading
+_db_init_once = threading.Event()
 
-# Cleanup function for email worker
+@app.before_request
+def _ensure_db_once():
+    if not _db_init_once.is_set():
+        try:
+            init_db()  # idempotent (uses IF NOT EXISTS)
+            print("[INIT_DB] Tables ensured.")
+        except Exception as e:
+            print(f"[INIT_DB ERROR] {e}")
+        finally:
+            _db_init_once.set()
+
+# ---- Cleanup function for email worker ----
 def cleanup_email_worker():
     global email_worker_running
     email_worker_running = False
     email_queue.put(None)  # Signal shutdown
     email_thread.join(timeout=5)
 
-# Register cleanup function
+# Register cleanup on process exit
 import atexit
 atexit.register(cleanup_email_worker)
 
+# ---- Local dev entrypoint ----
 if __name__ == '__main__':
     init_db()  # still fine for local runs
     app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)
