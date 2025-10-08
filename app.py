@@ -1066,6 +1066,15 @@ def admin_update_counter():
     flash(f'Member counter updated to {new_count:,}!', 'success')
     return redirect(url_for('admin_counter'))
 
+# Ensure DB when the first request hits (works under Gunicorn on Render)
+@app.before_first_request
+def _ensure_db():
+    try:
+        init_db()
+        print("[INIT_DB] Tables ensured.")
+    except Exception as e:
+        print(f"[INIT_DB ERROR] {e}")
+
 # Cleanup function for email worker
 def cleanup_email_worker():
     global email_worker_running
@@ -1077,11 +1086,6 @@ def cleanup_email_worker():
 import atexit
 atexit.register(cleanup_email_worker)
 
-
 if __name__ == '__main__':
-    init_db()
-    # either turn debug off entirely
-    # app.run(host='0.0.0.0', port=5000, debug=False)
-
-    # or keep debug but disable the reloader (recommended on Replit/Nix)
+    init_db()  # still fine for local runs
     app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)
