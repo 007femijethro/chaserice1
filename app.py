@@ -16,23 +16,53 @@ from db import engine
 from dotenv import load_dotenv
 load_dotenv()
 
-
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or 'chase-rice-fanpage-secret-2023'
 
-# --- Email configuration ---
+# --- Improved Email configuration ---
 EMAIL_SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.gmail.com")
 EMAIL_SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
-EMAIL_USERNAME  = os.environ.get("SMTP_USER", "")
-EMAIL_PASSWORD  = os.environ.get("SMTP_PASS", "")
-EMAIL_FROM      = os.environ.get("FROM_EMAIL", EMAIL_USERNAME or "no-reply@example.com")
+EMAIL_USERNAME = os.environ.get("SMTP_USER")  # No default - require explicit setting
+EMAIL_PASSWORD = os.environ.get("SMTP_PASS")  # No default - require explicit setting
+EMAIL_FROM = os.environ.get("FROM_EMAIL", EMAIL_USERNAME)
 EMAIL_FROM_NAME = os.environ.get("FROM_NAME", "Chase Rice Fan Club")
-ADMIN_EMAIL     = os.environ.get("ADMIN_EMAIL", "")
-EMAIL_USE_SSL   = os.environ.get("SMTP_SSL", "false").lower() == "true"
+ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL")
+EMAIL_USE_SSL = os.environ.get("SMTP_SSL", "false").lower() == "true"
+
+# Email configuration validation
+def validate_email_config():
+    """Validate email configuration and log status"""
+    print("=== EMAIL CONFIGURATION STATUS ===")
+    print(f"SMTP_HOST: {EMAIL_SMTP_HOST}")
+    print(f"SMTP_PORT: {EMAIL_SMTP_PORT}")
+    print(f"EMAIL_USERNAME: {EMAIL_USERNAME or '❌ NOT SET'}")
+    print(f"EMAIL_PASSWORD: {'*' * len(EMAIL_PASSWORD) if EMAIL_PASSWORD else '❌ NOT SET'}")
+    print(f"EMAIL_FROM: {EMAIL_FROM or '❌ NOT SET'}")
+    print(f"EMAIL_FROM_NAME: {EMAIL_FROM_NAME}")
+    print(f"ADMIN_EMAIL: {ADMIN_EMAIL or '❌ NOT SET'}")
+    print(f"EMAIL_USE_SSL: {EMAIL_USE_SSL}")
+
+    if not EMAIL_USERNAME or not EMAIL_PASSWORD:
+        print("❌ EMAIL DISABLED: Missing SMTP_USER or SMTP_PASS environment variables")
+        return False
+    if not EMAIL_FROM:
+        print("❌ EMAIL DISABLED: No FROM_EMAIL configured")
+        return False
+
+    print("✅ EMAIL CONFIGURATION VALID")
+    return True
+
+# Global email enabled flag
+EMAIL_ENABLED = validate_email_config()
 
 # Email queue for background processing
 email_queue = queue.Queue()
 email_worker_running = True
+email_stats = {
+    'sent': 0,
+    'failed': 0,
+    'queued': 0
+}
 
 def email_worker():
     """Background worker to process emails"""
@@ -45,10 +75,15 @@ def email_worker():
 
             subject, to_addrs, html_body, text_body = task
             try:
-                send_email(subject, to_addrs, html_body, text_body)
-                print(f"Background email sent to {to_addrs}")
+                if EMAIL_ENABLED:
+                    send_email(subject, to_addrs, html_body, text_body)
+                    email_stats['sent'] += 1
+                    print(f"✅ Background email sent to {to_addrs}")
+                else:
+                    print(f"📧 Email queued but not sent (email disabled): {subject} to {to_addrs}")
             except Exception as e:
-                print(f"Background email failed: {e}")
+                email_stats['failed'] += 1
+                print(f"❌ Background email failed: {e}")
             finally:
                 email_queue.task_done()
 
@@ -60,29 +95,28 @@ email_thread = threading.Thread(target=email_worker, daemon=True)
 email_thread.start()
 
 def send_email(subject: str, to_addrs: list[str], html_body: str, text_body: str | None = None):
-    # Add this right after your email configuration section in app.py
-    print("=== EMAIL CONFIGURATION ===")
-    print(f"SMTP_HOST: {EMAIL_SMTP_HOST}")
-    print(f"SMTP_PORT: {EMAIL_SMTP_PORT}")
-    print(f"EMAIL_USERNAME: {EMAIL_USERNAME}")
-    print(f"EMAIL_PASSWORD: {'*' * len(EMAIL_PASSWORD) if EMAIL_PASSWORD else 'None'}")
-    print(f"EMAIL_FROM: {EMAIL_FROM}")
-    print(f"EMAIL_FROM_NAME: {EMAIL_FROM_NAME}")
-    print(f"ADMIN_EMAIL: {ADMIN_EMAIL}")
-    print(f"EMAIL_USE_SSL: {EMAIL_USE_SSL}")
-    print("===========================")
-    if not to_addrs:
-        return
+    """Send email with improved error handling and logging"""
+    if not EMAIL_ENABLED:
+        print(f"📧 Email functionality disabled: {subject} to {to_addrs}")
+        return False
+
+    if not to_addrs or not any(to_addrs):
+        print("❌ No recipient addresses provided")
+        return False
+
     try:
         msg = EmailMessage()
         msg["Subject"] = subject
         msg["From"] = f"{EMAIL_FROM_NAME} <{EMAIL_FROM}>"
         msg["To"] = ", ".join(to_addrs)
+
         if text_body:
             msg.set_content(text_body)
             msg.add_alternative(html_body, subtype="html")
         else:
             msg.set_content(html_body, subtype="html")
+
+        print(f"📧 Attempting to send email: {subject} to {to_addrs}")
 
         if EMAIL_USE_SSL:
             try:
@@ -90,41 +124,67 @@ def send_email(subject: str, to_addrs: list[str], html_body: str, text_body: str
                     if EMAIL_USERNAME and EMAIL_PASSWORD:
                         smtp.login(EMAIL_USERNAME, EMAIL_PASSWORD)
                     smtp.send_message(msg)
+                    print(f"✅ Email sent successfully via SSL: {subject}")
+                    return True
             except Exception as e:
-                print(f"[EMAIL ERROR] SSL connection failed: {e}")
+                print(f"❌ SSL connection failed: {e}")
                 # Fallback to regular SMTP
                 with smtplib.SMTP(EMAIL_SMTP_HOST, EMAIL_SMTP_PORT) as smtp:
                     try:
                         smtp.starttls()
-                    except smtplib.SMTPException:
-                        pass
+                        print("🔒 STARTTLS enabled")
+                    except smtplib.SMTPException as e:
+                        print(f"⚠️ STARTTLS not supported: {e}")
                     if EMAIL_USERNAME and EMAIL_PASSWORD:
                         smtp.login(EMAIL_USERNAME, EMAIL_PASSWORD)
                     smtp.send_message(msg)
+                    print(f"✅ Email sent successfully via STARTTLS: {subject}")
+                    return True
         else:
             with smtplib.SMTP(EMAIL_SMTP_HOST, EMAIL_SMTP_PORT) as smtp:
                 try:
                     smtp.starttls()
-                except smtplib.SMTPException:
-                    pass
+                    print("🔒 STARTTLS enabled")
+                except smtplib.SMTPException as e:
+                    print(f"⚠️ STARTTLS not supported: {e}")
                 if EMAIL_USERNAME and EMAIL_PASSWORD:
                     smtp.login(EMAIL_USERNAME, EMAIL_PASSWORD)
                 smtp.send_message(msg)
-        print(f"[EMAIL SENT] To: {to_addrs}, Subject: {subject}")
+                print(f"✅ Email sent successfully: {subject}")
+                return True
+
+    except smtplib.SMTPAuthenticationError as e:
+        print(f"❌ SMTP Authentication failed: {e}")
+        print("💡 Tip: For Gmail, you may need an 'App Password' instead of your regular password")
+        return False
+    except smtplib.SMTPException as e:
+        print(f"❌ SMTP error: {e}")
+        return False
     except Exception as e:
-        print(f"[EMAIL ERROR] {e}")
+        print(f"❌ Unexpected email error: {e}")
+        return False
 
 def send_email_async(subject, to_addrs, html_body, text_body=None):
-    """Queue email for background sending"""
+    """Queue email for background sending with improved logging"""
+    if not EMAIL_ENABLED:
+        print(f"📧 Email queuing disabled: {subject} to {to_addrs}")
+        return False
+
     try:
         email_queue.put((subject, to_addrs, html_body, text_body))
+        email_stats['queued'] += 1
+        print(f"📧 Email queued: {subject} to {to_addrs}")
         return True
     except Exception as e:
-        print(f"Failed to queue email: {e}")
+        print(f"❌ Failed to queue email: {e}")
         return False
 
 def send_welcome_email(member_data):
     """Send welcome email to new members"""
+    if not EMAIL_ENABLED:
+        print(f"📧 Welcome email skipped (disabled): {member_data.get('username')}")
+        return False
+
     subject = "Welcome to the Chase Rice Fan Club!"
 
     html_body = f"""
@@ -205,12 +265,13 @@ def send_welcome_email(member_data):
     This is an automated message, please do not reply directly to this email.
     """
 
-    send_email_async(subject, [member_data.get('email')], html_body, text_body)
+    return send_email_async(subject, [member_data.get('email')], html_body, text_body)
 
 def send_admin_notification(subject, member_data, action_type="registration"):
     """Send notification email to admin"""
-    if not ADMIN_EMAIL:
-        return
+    if not EMAIL_ENABLED or not ADMIN_EMAIL:
+        print(f"📧 Admin notification skipped: {subject}")
+        return False
 
     action_text = {
         "registration": "registered",
@@ -288,10 +349,14 @@ def send_admin_notification(subject, member_data, action_type="registration"):
     View member details: {url_for('admin_member_detail', member_id=member_data.get('id'), _external=True)}
     """
 
-    send_email_async(subject, [ADMIN_EMAIL], html_body, text_body)
+    return send_email_async(subject, [ADMIN_EMAIL], html_body, text_body)
 
 def send_raffle_confirmation(entry_data):
     """Send raffle entry confirmation email"""
+    if not EMAIL_ENABLED:
+        print(f"📧 Raffle confirmation skipped: {entry_data.get('email')}")
+        return False
+
     subject = "You're in! Chase Rice Raffle Entry Confirmed"
 
     html_body = f"""
@@ -340,8 +405,51 @@ def send_raffle_confirmation(entry_data):
     </html>
     """
 
-    send_email_async(subject, [entry_data.get('email')], html_body)
-# --- End email configuration ---
+    return send_email_async(subject, [entry_data.get('email')], html_body)
+
+# --- Debug and Test Routes ---
+@app.route('/debug-email')
+def debug_email():
+    """Debug email configuration and test sending"""
+    debug_info = {
+        "email_enabled": EMAIL_ENABLED,
+        "smtp_host": EMAIL_SMTP_HOST,
+        "smtp_port": EMAIL_SMTP_PORT,
+        "email_username": EMAIL_USERNAME,
+        "email_password_set": bool(EMAIL_PASSWORD),
+        "email_from": EMAIL_FROM,
+        "admin_email": ADMIN_EMAIL,
+        "email_use_ssl": EMAIL_USE_SSL,
+        "queue_size": email_queue.qsize(),
+        "email_stats": email_stats
+    }
+
+    # Test email sending if configured
+    if EMAIL_ENABLED and ADMIN_EMAIL:
+        try:
+            test_result = send_email(
+                subject="Test Email from Chase Rice Fan Club",
+                to_addrs=[ADMIN_EMAIL],
+                html_body="<h1>Test Email</h1><p>This is a test email from your Flask application.</p>",
+                text_body="Test Email: This is a test email from your Flask application."
+            )
+            debug_info["test_email_sent"] = test_result
+        except Exception as e:
+            debug_info["test_email_error"] = str(e)
+
+    return jsonify(debug_info)
+
+@app.route('/email-queue-status')
+def email_queue_status():
+    """Check email queue status"""
+    return jsonify({
+        "queue_size": email_queue.qsize(),
+        "worker_alive": email_thread.is_alive(),
+        "worker_running": email_worker_running,
+        "email_enabled": EMAIL_ENABLED,
+        "stats": email_stats
+    })
+# --- End Email Configuration ---
 
 # Database initialization (Postgres/SQLAlchemy)
 def init_db():
@@ -499,7 +607,8 @@ def health_check():
     return jsonify({
         'status': 'healthy', 
         'timestamp': datetime.now().isoformat(),
-        'message': 'Chase Rice Fan Page is awake and running'
+        'message': 'Chase Rice Fan Page is awake and running',
+        'email_enabled': EMAIL_ENABLED
     })
 
 # Background thread for self-pinging (optional)
@@ -641,19 +750,21 @@ def member_register():
         # Send welcome email to new member (async)
         try:
             member_data = dict(new_member._mapping)
-            send_welcome_email(member_data)
+            welcome_sent = send_welcome_email(member_data)
+            print(f"📧 Welcome email {'queued' if welcome_sent else 'failed'} for {username}")
         except Exception as e:
-            print(f"[EMAIL ERROR] Welcome email failed: {e}")
+            print(f"❌ Welcome email error: {e}")
 
         # Send admin notification (async)
         try:
-            send_admin_notification(
+            admin_notification_sent = send_admin_notification(
                 f"New Member Registration: {username}",
                 member_data,
                 "registration"
             )
+            print(f"📧 Admin notification {'queued' if admin_notification_sent else 'failed'} for {username}")
         except Exception as e:
-            print(f"[EMAIL ERROR] Admin notification failed: {e}")
+            print(f"❌ Admin notification error: {e}")
 
         flash('Registration successful! You can now log in.', 'success')
         return redirect(url_for('member_login'))
@@ -691,7 +802,7 @@ def member_login():
                     "login"
                 )
             except Exception as e:
-                print(f"[EMAIL ERROR] Sign-in notification failed: {e}")
+                print(f"❌ Sign-in notification error: {e}")
 
             first_name = user._mapping.get("first_name")
             flash(f"Welcome back, {first_name or user._mapping['username']}!", 'success')
@@ -729,9 +840,10 @@ def raffle():
                 'email': email,
                 'favorite_song': favorite_song
             }
-            send_raffle_confirmation(entry_data)
+            raffle_sent = send_raffle_confirmation(entry_data)
+            print(f"📧 Raffle confirmation {'queued' if raffle_sent else 'failed'} for {email}")
         except Exception as e:
-            print(f"[EMAIL ERROR] Raffle confirmation failed: {e}")
+            print(f"❌ Raffle confirmation error: {e}")
 
         flash('Thanks for entering the raffle! Good luck!', 'success')
         return redirect(url_for('raffle'))
